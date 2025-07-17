@@ -4,9 +4,12 @@
         <div class="flex justify-between h-16">
             <div class="flex">
                 <!-- Logo -->
-                <div class="shrink-0 flex items-center">
+                <div class="shrink-0 flex items-center gap-2">
                     <a href="{{ route('dashboard') }}">
                         <img src="{{ asset('build/assets/img/futami_bg_excel.png') }}" alt="Futami Logo" style="height:40px;">
+                    </a>
+                    <a href="{{ route('dashboard') }}">
+                        <img src="{{ asset('build/assets/img/logo_limit_x.png') }}" alt="Limit X Logo" style="height:40px;">
                     </a>
                 </div>
 
