@@ -1,0 +1,109 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="max-w-7xl mx-auto py-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold text-green-900">Data Form Mikrobiologi</h2>
+        <a href="{{ route('mikrobiologi-forms.create') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">+ Tambah Form</a>
+    </div>
+    <form method="GET" action="" class="row g-2 align-items-end mb-4">
+        <div class="col-md-3">
+            <label class="form-label mb-1">Cari Judul/No/Tanggal</label>
+            <input type="text" name="search" placeholder="Cari..." value="{{ $search }}" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label mb-1">Cari Tanggal</label>
+            <input type="date" name="search_tgl" value="{{ $search_tgl }}" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label mb-1">Group by Judul</label>
+            <select name="group_title" class="form-select">
+                <option value="">-- Semua Judul --</option>
+                @foreach($titles as $title)
+                    <option value="{{ $title }}" {{ $group_title == $title ? 'selected' : '' }}>{{ $title }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-success w-100">Filter</button>
+        </div>
+        <div class="col-md-1">
+            <a href="{{ route('mikrobiologi-forms.index') }}" class="btn btn-outline-secondary w-100">Reset</a>
+        </div>
+    </form>
+    @if($group_title)
+        <div class="alert alert-info py-2 mb-3">Menampilkan data untuk judul: <b>{{ $group_title }}</b></div>
+    @endif
+    <div class="bg-white shadow rounded-lg overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-green-200">
+                <tr>
+                    <th class="px-4 py-2">No</th>
+                    <th class="px-4 py-2">Judul</th>
+                    <th class="px-4 py-2">No Form</th>
+                    <th class="px-4 py-2">Tgl Inokulasi</th>
+                    <th class="px-4 py-2">Tgl Pengamatan</th>
+                    <th class="px-4 py-2">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($forms as $form)
+                <tr class="hover:bg-yellow-50">
+                    <td class="px-4 py-2">{{ $loop->iteration + ($forms->currentPage()-1)*$forms->perPage() }}</td>
+                    <td class="px-4 py-2">{{ $form->title }}</td>
+                    <td class="px-4 py-2">{{ $form->no }}</td>
+                    <td class="px-4 py-2">{{ $form->tgl_inokulasi }}</td>
+                    <td class="px-4 py-2">{{ $form->tgl_pengamatan }}</td>
+                    <td class="px-4 py-2 flex gap-2">
+                        <a href="{{ route('mikrobiologi-forms.show', ['mikrobiologi_form' => $form->id]) }}" class="text-blue-600 hover:underline">Lihat</a>
+                        <a href="{{ route('mikrobiologi-forms.edit', ['mikrobiologi_form' => $form->id]) }}" class="text-yellow-600 hover:underline">Edit</a>
+                        <form action="{{ route('mikrobiologi-forms.destroy', ['mikrobiologi_form' => $form->id]) }}" method="POST" onsubmit="return confirm('Yakin hapus?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:underline">Hapus</button>
+                        </form>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="text-center py-4">Data tidak ditemukan.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div></div>
+        <div class="d-flex align-items-center gap-2 p-2 bg-white rounded shadow-sm border" style="min-width:260px;">
+            <form method="GET" action="" id="perPageForm" class="d-flex align-items-center me-2">
+                @foreach(request()->except('perPage', 'page') as $key => $val)
+                    <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                @endforeach
+                <label for="perPage" class="me-2 mb-0 fw-semibold text-success" style="font-size:0.95em;">Tampil:</label>
+                <select name="perPage" id="perPage" class="form-select form-select-sm w-auto border-success text-success fw-bold" style="background-color:#e9fbe9; font-size:0.95em;" onchange="document.getElementById('perPageForm').submit()">
+                    <option value="10" {{ $perPage==10 ? 'selected' : '' }}>10</option>
+                    <option value="20" {{ $perPage==20 ? 'selected' : '' }}>20</option>
+                    <option value="50" {{ $perPage==50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ $perPage==100 ? 'selected' : '' }}>100</option>
+                </select>
+            </form>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    @if ($forms->onFirstPage())
+                        <li class="page-item disabled"><span class="page-link bg-light border-0">&laquo;</span></li>
+                    @else
+                        <li class="page-item"><a class="page-link bg-warning text-success border-0 fw-bold" href="{{ $forms->previousPageUrl() }}">&laquo;</a></li>
+                    @endif
+                    @foreach ($forms->getUrlRange(1, $forms->lastPage()) as $page => $url)
+                        <li class="page-item {{ $page == $forms->currentPage() ? 'active' : '' }}">
+                            <a class="page-link {{ $page == $forms->currentPage() ? 'bg-success text-white border-success' : 'bg-light text-success border-0' }} fw-bold" href="{{ $url }}">{{ $page }}</a>
+                        </li>
+                    @endforeach
+                    @if ($forms->hasMorePages())
+                        <li class="page-item"><a class="page-link bg-warning text-success border-0 fw-bold" href="{{ $forms->nextPageUrl() }}">&raquo;</a></li>
+                    @else
+                        <li class="page-item disabled"><span class="page-link bg-light border-0">&raquo;</span></li>
+                    @endif
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+@endsection 
