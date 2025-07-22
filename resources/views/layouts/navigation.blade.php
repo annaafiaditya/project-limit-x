@@ -133,3 +133,40 @@
         </div>
     </div>
 </nav>
+<script>
+// Navbar hide on scroll down, show on scroll up
+(function() {
+    let lastScroll = window.scrollY;
+    let nav = document.querySelector('nav');
+    let ticking = false;
+    let navVisible = true;
+    function onScroll() {
+        const current = window.scrollY;
+        if (current <= 0) {
+            nav.style.transform = 'translateY(0)';
+            nav.style.transition = 'transform 0.35s cubic-bezier(.4,1.6,.4,1)';
+            navVisible = true;
+        } else if (current > lastScroll && navVisible) {
+            // Scroll down
+            nav.style.transform = 'translateY(-120%)';
+            nav.style.transition = 'transform 0.35s cubic-bezier(.4,1.6,.4,1)';
+            navVisible = false;
+        } else if (current < lastScroll && !navVisible) {
+            // Scroll up
+            nav.style.transform = 'translateY(0)';
+            nav.style.transition = 'transform 0.35s cubic-bezier(.4,1.6,.4,1)';
+            navVisible = true;
+        }
+        lastScroll = current;
+    }
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            window.requestAnimationFrame(function() {
+                onScroll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
+})();
+</script>

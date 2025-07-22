@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\MikrobiologiForm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Exports\FormExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MikrobiologiFormController extends Controller
 {
@@ -38,9 +40,17 @@ class MikrobiologiFormController extends Controller
         return view('mikrobiologi_forms.index', compact('forms', 'search', 'search_tgl', 'group_title', 'titles', 'perPage'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('mikrobiologi_forms.create');
+        $template = null;
+        $columns = collect();
+        if ($request->has('template_title')) {
+            $template = \App\Models\MikrobiologiForm::where('title', $request->template_title)->latest()->first();
+            if ($template) {
+                $columns = $template->columns()->orderBy('urutan')->get();
+            }
+        }
+        return view('mikrobiologi_forms.create', compact('template', 'columns'));
     }
 
     public function store(Request $request)
@@ -54,6 +64,49 @@ class MikrobiologiFormController extends Controller
         ]);
         $validated['created_by'] = Auth::id();
         $form = MikrobiologiForm::create($validated);
+        // Logic duplikat form jika dari template
+        if ($request->has('template_title')) {
+            \Log::info('DEBUG STORE: template_title', [$request->template_title]);
+            $template = \App\Models\MikrobiologiForm::where('title', $request->template_title)->latest()->first();
+            if ($template) {
+                \Log::info('DEBUG STORE: template_id', [$template->id]);
+                \Log::info('DEBUG STORE: template columns', $template->columns()->get()->toArray());
+                foreach ($template->columns()->get() as $col) {
+                    try {
+                        \Log::info('Akan create kolom duplikat', ['form_id' => $form->id, 'col' => $col->toArray()]);
+                        $newCol = \App\Models\MikrobiologiColumn::create([
+                            'form_id' => $form->id,
+                            'nama_kolom' => $col->nama_kolom,
+                            'tipe_kolom' => $col->tipe_kolom,
+                            'urutan' => $col->urutan,
+                        ]);
+                        \Log::info('Berhasil create kolom duplikat', ['newCol' => $newCol->toArray()]);
+                    } catch (\Exception $e) {
+                        \Log::error('Gagal create kolom duplikat: ' . $e->getMessage(), ['col' => $col->toArray(), 'form_id' => $form->id]);
+                        abort(500, 'Gagal create kolom duplikat: ' . $e->getMessage());
+                    }
+                }
+                foreach ($template->entries as $entry) {
+                    $form->entries()->create([
+                        'data' => $entry->data,
+                    ]);
+                }
+            }
+        }
+        // Logic duplikat form jika dari template
+        if ($request->has('columns.nama_kolom')) {
+            $nama_kolom = $request->input('columns.nama_kolom');
+            $tipe_kolom = $request->input('columns.tipe_kolom');
+            $urutan = $request->input('columns.urutan');
+            for ($i = 0; $i < count($nama_kolom); $i++) {
+                \App\Models\MikrobiologiColumn::create([
+                    'form_id' => $form->id,
+                    'nama_kolom' => $nama_kolom[$i],
+                    'tipe_kolom' => $tipe_kolom[$i],
+                    'urutan' => $urutan[$i] ?? 0,
+                ]);
+            }
+        }
         return redirect()->route('mikrobiologi-forms.show', ['mikrobiologi_form' => $form->id])->with('success', 'Form berhasil dibuat!');
     }
 
@@ -85,12 +138,31 @@ class MikrobiologiFormController extends Controller
             'tgl_pengamatan' => 'required|date',
         ]);
         $mikrobiologi_form->update($validated);
-        return redirect()->route('mikrobiologi-forms.show', ['mikrobiologi_form' => $mikrobiologi_form->id])->with('success', 'Form berhasil diupdate!');
+        // Jika request mengandung ?from=show, redirect ke detail form
+        if ($request->query('from') === 'show') {
+            return redirect()->route('mikrobiologi-forms.show', ['mikrobiologi_form' => $mikrobiologi_form->id])->with('success', 'Form berhasil diupdate!');
+        }
+        // Default: redirect ke index
+        return redirect()->route('mikrobiologi-forms.index')->with('success', 'Form berhasil diupdate!');
     }
 
     public function destroy(MikrobiologiForm $mikrobiologi_form)
     {
         $mikrobiologi_form->delete();
         return redirect()->route('mikrobiologi-forms.index')->with('success', 'Form berhasil dihapus!');
+    }
+
+    public function uniqueTitles()
+    {
+        $titles = \App\Models\MikrobiologiForm::select('title')->distinct()->orderBy('title')->get();
+        return response()->json($titles);
+    }
+
+    public function export(MikrobiologiForm $mikrobiologi_form)
+    {
+        $judul = preg_replace('/[^A-Za-z0-9_\-]/', '_', $mikrobiologi_form->title);
+        $no = preg_replace('/[^A-Za-z0-9_\-]/', '_', $mikrobiologi_form->no);
+        $filename = $judul.'_'.$no.'.xlsx';
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\FormExport($mikrobiologi_form), $filename);
     }
 }

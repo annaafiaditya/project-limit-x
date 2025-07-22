@@ -3,7 +3,7 @@
 @section('content')
 <div class="max-w-xl mx-auto py-6">
     <h2 class="text-2xl font-bold text-green-900 mb-4">Edit Form Mikrobiologi</h2>
-    <form action="{{ route('mikrobiologi-forms.update', $form) }}" method="POST" class="bg-white shadow rounded-lg p-6 space-y-4">
+    <form action="{{ route('mikrobiologi-forms.update', $form) }}?from=show" method="POST" class="bg-white shadow rounded-lg p-6 space-y-4">
         @csrf
         @method('PUT')
         <div>

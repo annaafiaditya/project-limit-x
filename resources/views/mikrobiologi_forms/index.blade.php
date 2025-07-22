@@ -4,7 +4,30 @@
 <div class="max-w-7xl mx-auto py-6">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-bold text-green-900">Data Form Mikrobiologi</h2>
-        <a href="{{ route('mikrobiologi-forms.create') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">+ Tambah Form</a>
+        <div class="flex gap-2">
+            <a href="{{ route('mikrobiologi-forms.create') }}" class="btn btn-success px-4 py-2">+ Tambah Form</a>
+            <button type="button" class="btn btn-primary px-4 py-2" data-bs-toggle="modal" data-bs-target="#templateFormModal">
+              <i class="bi bi-files"></i> Template Form
+            </button>
+        </div>
+    </div>
+    <!-- Modal Bootstrap -->
+    <div class="modal fade" id="templateFormModal" tabindex="-1" aria-labelledby="templateFormModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="templateFormModalLabel">Pilih Judul Form (Template)</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <select id="select-template-form" class="form-select"></select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-primary" id="btn-use-template">Duplikat</button>
+          </div>
+        </div>
+      </div>
     </div>
     <form method="GET" action="" class="row g-2 align-items-end mb-4">
         <div class="col-md-3">
@@ -25,7 +48,7 @@
             </select>
         </div>
         <div class="col-md-2">
-            <button type="submit" class="btn btn-success w-100">Filter</button>
+            <button type="submit" class="btn btn-secondary w-100">Filter</button>
         </div>
         <div class="col-md-1">
             <a href="{{ route('mikrobiologi-forms.index') }}" class="btn btn-outline-secondary w-100">Reset</a>
@@ -48,7 +71,7 @@
             </thead>
             <tbody>
                 @forelse($forms as $form)
-                <tr class="hover:bg-yellow-50">
+                <tr class="hover:bg-yellow-50 cursor-pointer" onclick="window.location='{{ route('mikrobiologi-forms.show', ['mikrobiologi_form' => $form->id]) }}'">
                     <td class="px-4 py-2">{{ $loop->iteration + ($forms->currentPage()-1)*$forms->perPage() }}</td>
                     <td class="px-4 py-2">{{ $form->title }}</td>
                     <td class="px-4 py-2">{{ $form->no }}</td>
@@ -61,6 +84,7 @@
                             @csrf @method('DELETE')
                             <button type="submit" class="text-red-600 hover:underline">Hapus</button>
                         </form>
+                        <a href="{{ route('mikrobiologi-forms.export', ['mikrobiologi_form' => $form->id]) }}" class="text-green-600 hover:underline">Export Excel</a>
                     </td>
                 </tr>
                 @empty
@@ -106,4 +130,28 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('scripts')
+<script>
+document.getElementById('templateFormModal').addEventListener('show.bs.modal', function () {
+  fetch('/template-forms/unique-titles', {headers: {'Accept':'application/json'}})
+    .then(res => res.json())
+    .then(list => {
+      const select = document.getElementById('select-template-form');
+      select.innerHTML = list.map(f => `<option value='${encodeURIComponent(f.title)}'>${f.title}</option>`).join('');
+    });
+});
+document.getElementById('btn-use-template').onclick = function() {
+  const title = document.getElementById('select-template-form').value;
+  if (title) window.location.href = '/mikrobiologi-forms/create?template_title=' + title;
+};
+</script>
+@endpush 
+
+@push('styles')
+<style>
+.hover\:bg-yellow-50:hover { background-color: #fef9c3 !important; }
+.cursor-pointer { cursor: pointer; }
+</style>
+@endpush 

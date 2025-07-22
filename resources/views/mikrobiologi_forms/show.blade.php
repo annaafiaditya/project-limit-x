@@ -1,20 +1,23 @@
 @extends('layouts.app')
 
 @section('content')
+@if(session('success'))
+    <div class="alert alert-success mb-4 mx-auto" style="max-width: 900px;">{{ session('success') }}</div>
+@endif
+@if($errors->any())
+    <div class="alert alert-danger mb-4 mx-auto" style="max-width: 900px;">{{ $errors->first() }}</div>
+@endif
 <div class="max-w-5xl mx-auto py-6">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold text-green-900">Detail Form Mikrobiologi</h2>
-        <div class="flex gap-2">
-            <a href="{{ route('mikrobiologi-forms.edit', ['mikrobiologi_form' => $form->id]) }}" class="bg-yellow-400 text-green-900 px-4 py-2 rounded hover:bg-yellow-500">Edit</a>
-            <a href="{{ route('mikrobiologi-forms.index') }}" class="bg-gray-300 text-green-900 px-4 py-2 rounded hover:bg-gray-400">Kembali</a>
-            <!-- FORM HAPUS FORM, hanya untuk hapus form utama -->
-            <form action="{{ route('mikrobiologi-forms.destroy', ['mikrobiologi_form' => $form->id]) }}" method="POST" onsubmit="return confirm('Yakin hapus form ini?')" style="display:inline-block; margin:0;">
-                @csrf @method('DELETE')
-                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 btn-delete-form">Hapus Form</button>
-            </form>
-        </div>
-    </div>
     <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h2 class="text-2xl font-bold text-green-900 mb-2">Detail Form Mikrobiologi</h2>
+            </div>
+            <div class="flex gap-2">
+                <a href="{{ route('mikrobiologi-forms.edit', ['mikrobiologi_form' => $form->id]) }}" class="btn btn-warning btn-sm text-white fw-bold px-3 py-1">Edit</a>
+                <a href="{{ route('mikrobiologi-forms.index') }}" class="btn btn-secondary btn-sm fw-bold px-3 py-1">Kembali</a>
+            </div>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><strong>Judul:</strong> {{ $form->title }}</div>
             <div><strong>No Form:</strong> {{ $form->no }}</div>
@@ -22,6 +25,7 @@
             <div><strong>Tanggal Pengamatan:</strong> {{ $form->tgl_pengamatan }}</div>
         </div>
     </div>
+    {{-- Hapus debug kolom builder dari DB --}}
     <!-- TABEL DINAMIS START (pastikan di luar form hapus form) -->
     <div class="mb-8">
         <style>
@@ -95,9 +99,6 @@
         </style>
         <div class="dynamic-card">
             <h3 class="fw-bold mb-3" style="color:#222;">Tabel Dinamis</h3>
-            @if(session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
             @if($errors->any())
                 <div class="alert alert-danger mb-2">{{ $errors->first() }}</div>
             @endif
