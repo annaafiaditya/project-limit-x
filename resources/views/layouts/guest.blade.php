@@ -5,8 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>Futami Limit-X</title>
-        <link rel="icon" type="image/png" href="{{ asset('build/assets/img/logo_limit_x.png') }}">
+        <title>Limit-X Futami</title>
+        <link rel="icon" type="image/png" href="{{ asset('assets/img/logo_2x_limit_x.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -15,17 +15,10 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
-            <div>
-                <a href="/">
-                    <img src="{{ asset('build/assets/img/logo_limit_x.png') }}" alt="Limit X Logo" style="height:60px;">
-                </a>
-            </div>
-
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
-                @yield('content')
-            </div>
+    <body class="font-sans text-gray-900 antialiased" style="background: url('{{ asset('assets/img/bg_login.jpeg') }}') center center / cover no-repeat fixed; min-height: 100vh;">
+        <div style="backdrop-filter: blur(8px); min-height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; z-index: 0;"></div>
+        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-transparent" style="position: relative; z-index: 1;">
+            @yield('content')
         </div>
     </body>
 </html>

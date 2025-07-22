@@ -54,7 +54,7 @@ class MikrobiologiFormController extends Controller
         ]);
         $validated['created_by'] = Auth::id();
         $form = MikrobiologiForm::create($validated);
-        return redirect()->route('mikrobiologi-forms.show', $form)->with('success', 'Form berhasil dibuat!');
+        return redirect()->route('mikrobiologi-forms.show', ['mikrobiologi_form' => $form->id])->with('success', 'Form berhasil dibuat!');
     }
 
     public function show(MikrobiologiForm $mikrobiologi_form)
@@ -85,7 +85,7 @@ class MikrobiologiFormController extends Controller
             'tgl_pengamatan' => 'required|date',
         ]);
         $mikrobiologi_form->update($validated);
-        return redirect()->route('mikrobiologi-forms.show', $mikrobiologi_form)->with('success', 'Form berhasil diupdate!');
+        return redirect()->route('mikrobiologi-forms.show', ['mikrobiologi_form' => $mikrobiologi_form->id])->with('success', 'Form berhasil diupdate!');
     }
 
     public function destroy(MikrobiologiForm $mikrobiologi_form)

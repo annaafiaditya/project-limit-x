@@ -10,7 +10,7 @@
                         <i class="bi bi-speedometer2 text-success" style="font-size:3rem;"></i>
                     </div>
                     <h2 class="fw-bold text-success mb-3">Dashboard</h2>
-                    <p class="lead text-secondary mb-0">Selamat datang di aplikasi Mikrobiologi!<br>Gunakan menu di atas untuk mengelola data, form, dan approval signature dengan mudah dan modern.</p>
+                    <p class="lead text-secondary mb-0">Selamat datang di aplikasi Futami Limit-X!<br>Gunakan menu di atas untuk mengelola data, form, dan approval signature dengan mudah dan modern.</p>
                 </div>
             </div>
         </div>

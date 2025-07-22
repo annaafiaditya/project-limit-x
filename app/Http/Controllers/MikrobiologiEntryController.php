@@ -33,7 +33,7 @@ class MikrobiologiEntryController extends Controller
             'data' => 'required|array',
         ]);
         MikrobiologiEntry::create($validated);
-        return redirect()->route('mikrobiologi-forms.show', $request->form_id)->with('success', 'Data entry berhasil ditambah!');
+        return redirect()->route('mikrobiologi-forms.show', ['mikrobiologi_form' => $request->form_id])->with('success', 'Data entry berhasil ditambah!');
     }
 
     /**
@@ -57,20 +57,39 @@ class MikrobiologiEntryController extends Controller
      */
     public function update(Request $request, MikrobiologiEntry $mikrobiologiEntry)
     {
-        $validated = $request->validate([
-            'data' => 'required|array',
-        ]);
-        $mikrobiologiEntry->update($validated);
-        return redirect()->route('mikrobiologi-forms.show', $mikrobiologiEntry->form_id)->with('success', 'Data entry berhasil diupdate!');
+        try {
+            $validated = $request->validate([
+                'data' => 'required|array',
+            ]);
+            $mikrobiologiEntry->update($validated);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'updated' => true]);
+            }
+            return redirect()->route('mikrobiologi-forms.show', ['mikrobiologi_form' => $mikrobiologiEntry->form_id])->with('success', 'Data entry berhasil diupdate!');
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal update entry: ' . $e->getMessage()], 500);
+            }
+            return redirect()->back()->with('error', 'Gagal update entry!');
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(MikrobiologiEntry $mikrobiologiEntry)
+    public function destroy(Request $request, MikrobiologiEntry $mikrobiologiEntry)
     {
-        $formId = $mikrobiologiEntry->form_id;
-        $mikrobiologiEntry->delete();
-        return redirect()->route('mikrobiologi-forms.show', $formId)->with('success', 'Data entry berhasil dihapus!');
+        try {
+            $mikrobiologiEntry->delete();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true]);
+            }
+            return redirect()->back()->with('success', 'Data entry berhasil dihapus!');
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal hapus entry: ' . $e->getMessage()], 500);
+            }
+            return redirect()->back()->with('error', 'Gagal hapus entry!');
+        }
     }
 }

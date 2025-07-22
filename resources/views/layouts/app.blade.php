@@ -5,8 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>Futami Limit-X</title>
-        <link rel="icon" type="image/png" href="{{ asset('build/assets/img/logo_daun_futami.png') }}">
+        <title>Limit-X Futami</title>
+        <link rel="icon" type="image/png" href="{{ asset('assets/img/logo_2x_limit_x.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -37,5 +37,6 @@
                 @yield('content')
             </main>
         </div>
+        @stack('scripts')
     </body>
 </html>

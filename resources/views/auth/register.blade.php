@@ -1,52 +1,132 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
+@extends('layouts.guest')
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+@section('content')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<style>
+    .register-card {
+        background: rgba(24,24,40,0.68);
+        border-radius: 2rem;
+        padding: 2.2rem 1.5rem 2rem 1.5rem;
+        max-width: 370px;
+        width: 100%;
+        margin: 0 auto;
+        box-shadow: 0 8px 32px #0003;
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+    }
+    .register-label {
+        color: #fff;
+        font-size: 1rem;
+        margin-bottom: 0.2rem;
+        font-weight: 500;
+    }
+    .register-input {
+        background: transparent;
+        color: #fff;
+        border: none;
+        border-bottom: 2px solid #fff;
+        border-radius: 0;
+        font-size: 1.08rem;
+        padding: 0.7rem 0.2rem 0.7rem 0.2rem;
+        margin-bottom: 1.2rem;
+        box-shadow: none;
+    }
+    .register-input:focus {
+        background: transparent;
+        color: #fff;
+        border-bottom: 2px solid #ff2d2d;
+        box-shadow: none;
+    }
+    .register-input::placeholder {
+        color: #bbb;
+        opacity: 1;
+    }
+    .register-btn {
+        background: #ff2d2d;
+        color: #fff;
+        border: none;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 1.18rem;
+        letter-spacing: 1px;
+        box-shadow: 0 2px 8px #0002;
+        padding: 0.95rem 0;
+        margin-top: 0.7rem;
+        margin-bottom: 0.7rem;
+        width: 100%;
+        transition: all .2s;
+    }
+    .register-btn:hover, .register-btn:focus {
+        background: #d60000;
+        color: #fff;
+        box-shadow: 0 4px 16px #0003;
+    }
+    .register-links {
+        font-size: 0.97rem;
+        color: #fff;
+        margin-bottom: 0.2rem;
+        text-align: center;
+    }
+    .register-links a {
+        color: #fff;
+        text-decoration: underline;
+        margin: 0 0.2rem;
+    }
+    .logo-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.2rem;
+        margin-bottom: 1.7rem;
+    }
+    .logo-row img {
+        max-height: 48px;
+        background: rgba(255,255,255,0.13);
+        border-radius: 1rem;
+        padding: 0.3rem 1.2rem;
+    }
+</style>
+<div class="container min-vh-100 d-flex flex-column justify-content-center align-items-center" style="padding-top: 40px; padding-bottom: 40px;">
+    <div class="register-card d-flex flex-column align-items-center justify-content-center">
+        <div class="logo-row">
+            <img src="{{ asset('assets/img/logo_futami.png') }}" alt="Futami Logo">
+            <img src="{{ asset('assets/img/logo_limit_x.png') }}" alt="Limit X Logo">
         </div>
-
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+        <form method="POST" action="{{ route('register') }}" class="w-100 d-flex flex-column align-items-center">
+            @csrf
+            <div class="w-100" style="max-width: 270px;">
+                <label for="name" class="register-label">Nama</label>
+                <input id="name" type="text" name="name" class="form-control register-input @error('name') is-invalid @enderror" placeholder="Nama" value="{{ old('name') }}" required autofocus autocomplete="name">
+                @error('name')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+            </div>
+            <div class="w-100" style="max-width: 270px;">
+                <label for="email" class="register-label">Email</label>
+                <input id="email" type="email" name="email" class="form-control register-input @error('email') is-invalid @enderror" placeholder="Email" value="{{ old('email') }}" required autocomplete="username">
+                @error('email')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+            </div>
+            <div class="w-100" style="max-width: 270px;">
+                <label for="password" class="register-label">Password</label>
+                <input id="password" type="password" name="password" class="form-control register-input @error('password') is-invalid @enderror" placeholder="Password" required autocomplete="new-password">
+                @error('password')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+            </div>
+            <div class="w-100" style="max-width: 270px;">
+                <label for="password_confirmation" class="register-label">Konfirmasi Password</label>
+                <input id="password_confirmation" type="password" name="password_confirmation" class="form-control register-input @error('password_confirmation') is-invalid @enderror" placeholder="Konfirmasi Password" required autocomplete="new-password">
+                @error('password_confirmation')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+            </div>
+            <button type="submit" class="btn register-btn">Register</button>
+            <div class="register-links w-100 mt-2">
+                <a href="{{ route('login') }}">Sudah punya akun?</a>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection

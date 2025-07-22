@@ -10,7 +10,11 @@ class MikrobiologiEntry extends Model
     use HasFactory;
 
     protected $fillable = [
-        'form_id', 'no', 'string_field', 'tanggal_field', 'jam_field', 'keterangan'
+        'form_id', 'data'
+    ];
+
+    protected $casts = [
+        'data' => 'array',
     ];
 
     public function form()

@@ -34,8 +34,8 @@ class MikrobiologiColumnController extends Controller
             'tipe_kolom' => 'required|string',
             'urutan' => 'nullable|integer',
         ]);
-        MikrobiologiColumn::create($validated);
-        return redirect()->route('mikrobiologi-forms.show', $request->form_id)->with('success', 'Kolom berhasil ditambah!');
+        $col = MikrobiologiColumn::create($validated);
+        return response()->json($col);
     }
 
     /**
@@ -57,24 +57,25 @@ class MikrobiologiColumnController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, MikrobiologiColumn $mikrobiologiColumn)
+    public function update(Request $request, $id)
     {
+        $col = MikrobiologiColumn::findOrFail($id);
         $validated = $request->validate([
             'nama_kolom' => 'required|string',
             'tipe_kolom' => 'required|string',
             'urutan' => 'nullable|integer',
         ]);
-        $mikrobiologiColumn->update($validated);
-        return redirect()->route('mikrobiologi-forms.show', $mikrobiologiColumn->form_id)->with('success', 'Kolom berhasil diupdate!');
+        $col->update($validated);
+        return response()->json($col);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(MikrobiologiColumn $mikrobiologiColumn)
+    public function destroy(Request $request, $id)
     {
-        $formId = $mikrobiologiColumn->form_id;
-        $mikrobiologiColumn->delete();
-        return redirect()->route('mikrobiologi-forms.show', $formId)->with('success', 'Kolom berhasil dihapus!');
+        $col = MikrobiologiColumn::findOrFail($id);
+        $col->delete();
+        return response()->json(['success' => true]);
     }
 }
