@@ -1,9 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-xl mx-auto py-6">
+<style>
+@keyframes fadeSlideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+.fade-slide-up { animation: fadeSlideUp 0.9s cubic-bezier(.39,.575,.565,1) both; }
+</style>
+<div class="max-w-xl mx-auto py-6 fade-slide-up">
     <h2 class="text-2xl font-bold text-green-900 mb-4">Edit Form Mikrobiologi</h2>
-    <form action="{{ route('mikrobiologi-forms.update', $form) }}?from=show" method="POST" class="bg-white shadow rounded-lg p-6 space-y-4">
+    <form action="{{ route('mikrobiologi-forms.update', $form) }}?from=show" method="POST" class="bg-white shadow rounded-lg p-6 space-y-4 fade-slide-up">
         @csrf
         @method('PUT')
         <div>

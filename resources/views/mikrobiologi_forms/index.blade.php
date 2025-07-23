@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto py-6">
-    <div class="flex justify-between items-center mb-4">
+<div class="max-w-7xl mx-auto py-6 animate-fade-in-up">
+    <div class="flex justify-between items-center mb-4 animate-fade-in-up">
         <h2 class="text-2xl font-bold text-green-900">Data Form Mikrobiologi</h2>
         <div class="flex gap-2">
             <a href="{{ route('mikrobiologi-forms.create') }}" class="btn btn-success px-4 py-2">+ Tambah Form</a>
@@ -11,8 +11,20 @@
             </button>
         </div>
     </div>
+    <!-- Filter Approval -->
+    <div class="mb-3 d-flex align-items-center gap-2 animate-fade-in-up">
+        <form method="GET" action="{{ route('mikrobiologi-forms.index') }}" class="d-inline">
+            <input type="hidden" name="approval" value="pending">
+            <button type="submit" class="btn btn-outline-warning {{ request('approval') == 'pending' ? 'active fw-bold' : '' }}">
+                <i class="bi bi-person-check"></i> Filter Approval (Belum Lengkap)
+            </button>
+        </form>
+        @if(request('approval') == 'pending')
+            <a href="{{ route('mikrobiologi-forms.index') }}" class="btn btn-outline-secondary">Tampilkan Semua</a>
+        @endif
+    </div>
     <!-- Modal Bootstrap -->
-    <div class="modal fade" id="templateFormModal" tabindex="-1" aria-labelledby="templateFormModalLabel" aria-hidden="true">
+    <div class="modal fade fade-slide-up fade-delay-2" id="templateFormModal" tabindex="-1" aria-labelledby="templateFormModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -29,7 +41,7 @@
         </div>
       </div>
     </div>
-    <form method="GET" action="" class="row g-2 align-items-end mb-4">
+    <form method="GET" action="" class="row g-2 align-items-end mb-4 animate-fade-in-up">
         <div class="col-md-3">
             <label class="form-label mb-1">Cari Judul/No/Tanggal</label>
             <input type="text" name="search" placeholder="Cari..." value="{{ $search }}" class="form-control">
@@ -55,9 +67,9 @@
         </div>
     </form>
     @if($group_title)
-        <div class="alert alert-info py-2 mb-3">Menampilkan data untuk judul: <b>{{ $group_title }}</b></div>
+        <div class="alert alert-info py-2 mb-3 animate-fade-in-up">Menampilkan data untuk judul: <b>{{ $group_title }}</b></div>
     @endif
-    <div class="bg-white shadow rounded-lg overflow-x-auto">
+    <div class="bg-white shadow rounded-lg overflow-x-auto animate-fade-in-up" style="animation-delay:.15s; animation-duration:.8s;">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-green-200">
                 <tr>
@@ -93,7 +105,7 @@
             </tbody>
         </table>
     </div>
-    <div class="d-flex justify-content-between align-items-center mt-4">
+    <div class="d-flex justify-content-between align-items-center mt-4 animate-fade-in-up">
         <div></div>
         <div class="d-flex align-items-center gap-2 p-2 bg-white rounded shadow-sm border" style="min-width:260px;">
             <form method="GET" action="" id="perPageForm" class="d-flex align-items-center me-2">
@@ -149,9 +161,12 @@ document.getElementById('btn-use-template').onclick = function() {
 </script>
 @endpush 
 
-@push('styles')
 <style>
-.hover\:bg-yellow-50:hover { background-color: #fef9c3 !important; }
-.cursor-pointer { cursor: pointer; }
-</style>
-@endpush 
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.7s cubic-bezier(.39,.575,.565,1) both;
+}
+</style> 

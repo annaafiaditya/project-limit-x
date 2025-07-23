@@ -80,9 +80,11 @@
         border-radius: 1rem;
         padding: 0.3rem 1.2rem;
     }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+    .fade-slide-up { animation: fadeSlideUp 0.9s cubic-bezier(.39,.575,.565,1) both; }
 </style>
 <div class="container min-vh-100 d-flex flex-column justify-content-center align-items-center" style="padding-top: 40px; padding-bottom: 40px;">
-    <div class="forgot-card d-flex flex-column align-items-center justify-content-center">
+    <div class="forgot-card d-flex flex-column align-items-center justify-content-center fade-slide-up">
         <div class="logo-row">
             <img src="{{ asset('assets/img/logo_futami.png') }}" alt="Futami Logo">
             <img src="{{ asset('assets/img/logo_limit_x.png') }}" alt="Limit X Logo">

@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" style="background: rgba(24,24,40,0.96); border-radius: 0.7rem; box-shadow: 0 8px 32px #0005; padding: 0.6rem 2.2rem; margin: 1.2rem auto 2.2rem auto; max-width: 1100px; position: sticky; top: 18px; z-index: 50; transition: box-shadow .2s, background .2s;">
+<nav x-data="{ open: false }" class="nav-animate-drop" style="background: rgba(24,24,40,0.96); border-radius: 0.7rem; box-shadow: 0 8px 32px #0005; padding: 0.6rem 2.2rem; margin: 1.2rem auto 2.2rem auto; max-width: 1100px; position: sticky; top: 18px; z-index: 50; transition: box-shadow .2s, background .2s;">
     <style>
         .modern-dropdown {
             background: #232334;
@@ -41,6 +41,13 @@
             background: #d60000 !important;
             color: #fff !important;
         }
+        @keyframes navDropDown {
+  from { opacity: 0; transform: translateY(-60px); }
+  to { opacity: 1; transform: none; }
+}
+.nav-animate-drop {
+  animation: navDropDown 0.7s cubic-bezier(.39,.575,.565,1) both;
+}
     </style>
     <div class="flex justify-between h-14 items-center">
         <div class="flex items-center gap-4">

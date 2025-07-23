@@ -7,8 +7,14 @@
 @if($errors->any())
     <div class="alert alert-danger mb-4 mx-auto" style="max-width: 900px;">{{ $errors->first() }}</div>
 @endif
-<div class="max-w-5xl mx-auto py-6">
-    <div class="bg-white shadow rounded-lg p-6 mb-6">
+<style>
+@keyframes fadeSlideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+.fade-slide-up { animation: fadeSlideUp 0.9s cubic-bezier(.39,.575,.565,1) both; }
+.fade-slide-up-delay-1 { animation-delay: .15s; }
+.fade-slide-up-delay-2 { animation-delay: .3s; }
+</style>
+<div class="max-w-5xl mx-auto py-6 fade-slide-up">
+    <div class="bg-white shadow rounded-lg p-6 mb-6 fade-slide-up fade-slide-up-delay-1">
         <div class="flex justify-between items-start mb-4">
             <div>
                 <h2 class="text-2xl font-bold text-green-900 mb-2">Detail Form Mikrobiologi</h2>
@@ -27,7 +33,7 @@
     </div>
     {{-- Hapus debug kolom builder dari DB --}}
     <!-- TABEL DINAMIS START (pastikan di luar form hapus form) -->
-    <div class="mb-8">
+    <div class="mb-8 fade-slide-up fade-slide-up-delay-2">
         <style>
             .dynamic-card {
                 background: #f7f7fa;
@@ -97,7 +103,7 @@
             .action-btn-delete { background: #ef4444; color: #fff; }
             .action-btn-delete:hover { background: #b91c1c; color: #fff; }
         </style>
-        <div class="dynamic-card">
+        <div class="dynamic-card fade-slide-up fade-slide-up-delay-2">
             <h3 class="fw-bold mb-3" style="color:#222;">Tabel Dinamis</h3>
             @if($errors->any())
                 <div class="alert alert-danger mb-2">{{ $errors->first() }}</div>
