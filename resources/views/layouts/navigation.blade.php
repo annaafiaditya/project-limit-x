@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="nav-animate-drop" style="background: rgba(24,24,40,0.96); border-radius: 0.7rem; box-shadow: 0 8px 32px #0005; padding: 0.6rem 2.2rem; margin: 1.2rem auto 2.2rem auto; max-width: 1100px; position: sticky; top: 18px; z-index: 50; transition: box-shadow .2s, background .2s;">
+<nav x-data="{ open: false }" id="main-navbar" style="background: rgba(24,24,40,0.96); border-radius: 0.7rem; box-shadow: 0 8px 32px #0005; padding: 0.6rem 2.2rem; margin: 1.2rem auto 2.2rem auto; max-width: 1100px; position: sticky; top: 18px; z-index: 50; transition: box-shadow .2s, background .2s;">
     <style>
         .modern-dropdown {
             background: #232334;
@@ -47,6 +47,18 @@
 }
 .nav-animate-drop {
   animation: navDropDown 0.7s cubic-bezier(.39,.575,.565,1) both;
+}
+nav {
+  transition: transform 0.7s cubic-bezier(.22,1,.36,1) !important;
+  transition-property: transform !important;
+  transition-duration: 0.7s !important;
+  transition-timing-function: cubic-bezier(.22,1,.36,1) !important;
+  will-change: transform;
+}
+.nav-hide {
+  transform: translateY(-120%) !important;
+  /* opacity: 0 !important; */
+  /* pointer-events: none; */
 }
     </style>
     <div class="flex justify-between h-14 items-center">
@@ -141,39 +153,23 @@
     </div>
 </nav>
 <script>
-// Navbar hide on scroll down, show on scroll up
 (function() {
     let lastScroll = window.scrollY;
-    let nav = document.querySelector('nav');
-    let ticking = false;
+    let nav = document.getElementById('main-navbar');
     let navVisible = true;
-    function onScroll() {
+    window.addEventListener('scroll', function() {
         const current = window.scrollY;
         if (current <= 0) {
-            nav.style.transform = 'translateY(0)';
-            nav.style.transition = 'transform 0.35s cubic-bezier(.4,1.6,.4,1)';
+            nav.classList.remove('nav-hide');
             navVisible = true;
         } else if (current > lastScroll && navVisible) {
-            // Scroll down
-            nav.style.transform = 'translateY(-120%)';
-            nav.style.transition = 'transform 0.35s cubic-bezier(.4,1.6,.4,1)';
+            nav.classList.add('nav-hide');
             navVisible = false;
         } else if (current < lastScroll && !navVisible) {
-            // Scroll up
-            nav.style.transform = 'translateY(0)';
-            nav.style.transition = 'transform 0.35s cubic-bezier(.4,1.6,.4,1)';
+            nav.classList.remove('nav-hide');
             navVisible = true;
         }
         lastScroll = current;
-    }
-    window.addEventListener('scroll', function() {
-        if (!ticking) {
-            window.requestAnimationFrame(function() {
-                onScroll();
-                ticking = false;
-            });
-            ticking = true;
-        }
     });
 })();
 </script>
