@@ -37,7 +37,8 @@ class MikrobiologiFormController extends Controller
         }
         $forms = $query->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
         $titles = MikrobiologiForm::select('title')->distinct()->orderBy('title')->pluck('title');
-        return view('mikrobiologi_forms.index', compact('forms', 'search', 'search_tgl', 'group_title', 'titles', 'perPage'));
+        $template_titles = MikrobiologiForm::select('title')->distinct()->orderBy('title')->pluck('title');
+        return view('mikrobiologi_forms.index', compact('forms', 'search', 'search_tgl', 'group_title', 'titles', 'perPage', 'template_titles'));
     }
 
     public function create(Request $request)

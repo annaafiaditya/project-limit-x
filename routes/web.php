@@ -87,7 +87,8 @@ Route::middleware(['auth'])->group(function () {
         }
         $forms = $query->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
         $titles = \App\Models\MikrobiologiForm::select('title')->distinct()->orderBy('title')->pluck('title');
-        return view('mikrobiologi_forms.index', compact('forms', 'search', 'search_tgl', 'group_title', 'titles', 'perPage'));
+        $template_titles = \App\Models\MikrobiologiForm::select('title')->distinct()->orderBy('title')->pluck('title');
+        return view('mikrobiologi_forms.index', compact('forms', 'search', 'search_tgl', 'group_title', 'titles', 'perPage', 'template_titles'));
     })->name('mikrobiologi-forms.index');
 });
 // Route kolom di luar auth untuk testing AJAX tanpa auth
