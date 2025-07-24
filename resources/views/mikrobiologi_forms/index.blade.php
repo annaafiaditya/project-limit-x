@@ -62,6 +62,12 @@
     @if($group_title)
         <div class="alert alert-info py-2 mb-3 animate-fade-in-up">Menampilkan data untuk judul: <b>{{ $group_title }}</b></div>
     @endif
+    @if(session('export_error'))
+<div id="export-alert" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+    {!! session('export_error') !!}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
     <div class="bg-white shadow rounded-lg overflow-x-auto animate-fade-in-up" style="animation-delay:.15s; animation-duration:.8s;">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-green-200">
@@ -76,7 +82,7 @@
             </thead>
             <tbody>
                 @forelse($forms as $form)
-                <tr class="hover:bg-yellow-50 cursor-pointer" onclick="window.location='{{ route('mikrobiologi-forms.show', ['mikrobiologi_form' => $form->id]) }}'">
+                <tr class="hover:bg-yellow-50 cursor-pointer" onclick="window.location='{{ route('mikrobiologi-forms.show', ['mikrobiologi_form' => $form->id]) }}'" data-entry-count="{{ $form->entries->count() }}" data-approval-count="{{ $form->signatures->where('status', 'accept')->count() }}">
                     <td class="px-4 py-2">{{ $loop->iteration + ($forms->currentPage()-1)*$forms->perPage() }}</td>
                     <td class="px-4 py-2">{{ $form->title }}</td>
                     <td class="px-4 py-2">{{ $form->no }}</td>
@@ -138,7 +144,48 @@
 @endsection
 
 @push('scripts')
-<!-- HAPUS seluruh script fetch template form -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Intercept klik Export Excel
+  document.querySelectorAll('a[href*="/export"]').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation(); // Supaya tidak trigger onclick tr
+      const tr = link.closest('tr');
+      const formId = link.href.match(/mikrobiologi-forms\/(\d+)\/export/)[1];
+      const entryCount = tr.getAttribute('data-entry-count');
+      const approvalCount = tr.getAttribute('data-approval-count');
+      const judul = tr.querySelector('td:nth-child(2)')?.innerText || '-';
+      const noForm = tr.querySelector('td:nth-child(3)')?.innerText || '-';
+      let errorMsg = '';
+      if (entryCount === null || approvalCount === null) {
+        errorMsg = `Tidak bisa export: Data form tidak lengkap.<br><b>Judul:</b> ${judul} <b>No Form:</b> ${noForm}`;
+      } else if (parseInt(entryCount) === 0) {
+        errorMsg = `Tidak bisa export: Data entry kosong!<br><b>Judul:</b> ${judul} <b>No Form:</b> ${noForm}`;
+      } else if (parseInt(approvalCount) < 3) {
+        errorMsg = `Tidak bisa export: Approval kurang dari 3!<br><b>Judul:</b> ${judul} <b>No Form:</b> ${noForm}`;
+      }
+      if (errorMsg) {
+        // Tampilkan alert di web
+        let alertDiv = document.getElementById('export-alert');
+        if (!alertDiv) {
+          alertDiv = document.createElement('div');
+          alertDiv.id = 'export-alert';
+          alertDiv.className = 'alert alert-danger alert-dismissible fade show mb-3';
+          alertDiv.role = 'alert';
+          document.querySelector('.bg-white.shadow.rounded-lg').before(alertDiv);
+        }
+        alertDiv.innerHTML = errorMsg + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        setTimeout(function() {
+          if(alertDiv) alertDiv.style.display = 'none';
+        }, 10000);
+        return;
+      }
+      window.location.href = link.href;
+    });
+  });
+});
+</script>
 @endpush
 
 <style>
