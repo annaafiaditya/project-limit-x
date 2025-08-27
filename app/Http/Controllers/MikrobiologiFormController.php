@@ -166,4 +166,23 @@ class MikrobiologiFormController extends Controller
         $filename = $judul.'_'.$no.'.xlsx';
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\FormExport($mikrobiologi_form), $filename);
     }
+
+    public function exportPdf(MikrobiologiForm $mikrobiologi_form)
+    {
+        $columns = $mikrobiologi_form->columns()->orderBy('urutan')->get();
+        $entries = $mikrobiologi_form->entries()->orderBy('id')->get();
+        $signatures = $mikrobiologi_form->signatures()->get();
+        
+        $judul = preg_replace('/[^A-Za-z0-9_\-]/', '_', $mikrobiologi_form->title);
+        $no = preg_replace('/[^A-Za-z0-9_\-]/', '_', $mikrobiologi_form->no);
+        $filename = $judul.'_'.$no.'.pdf';
+        
+        // Generate HTML content for PDF
+        $html = view('mikrobiologi_forms.pdf', compact('mikrobiologi_form', 'columns', 'entries', 'signatures'))->render();
+        
+        // Return HTML for browser to handle PDF generation
+        return response($html)
+            ->header('Content-Type', 'text/html')
+            ->header('Content-Disposition', 'inline; filename="' . $filename . '"');
+    }
 }

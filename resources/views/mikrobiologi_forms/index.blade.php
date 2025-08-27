@@ -91,11 +91,11 @@
                     <td class="px-4 py-2 flex gap-2">
                         <a href="{{ route('mikrobiologi-forms.show', ['mikrobiologi_form' => $form->id]) }}" class="text-blue-600 hover:underline">Lihat</a>
                         <a href="{{ route('mikrobiologi-forms.edit', ['mikrobiologi_form' => $form->id]) }}" class="text-yellow-600 hover:underline">Edit</a>
+                        <a href="{{ route('mikrobiologi-forms.export', ['mikrobiologi_form' => $form->id]) }}" class="text-green-600 hover:underline">Export Excel</a>
                         <form action="{{ route('mikrobiologi-forms.destroy', ['mikrobiologi_form' => $form->id]) }}" method="POST" onsubmit="return confirm('Yakin hapus?')">
                             @csrf @method('DELETE')
                             <button type="submit" class="text-red-600 hover:underline">Hapus</button>
                         </form>
-                        <a href="{{ route('mikrobiologi-forms.export', ['mikrobiologi_form' => $form->id]) }}" class="text-green-600 hover:underline">Export Excel</a>
                     </td>
                 </tr>
                 @empty
@@ -194,6 +194,6 @@ document.addEventListener('DOMContentLoaded', function() {
   to { opacity: 1; transform: none; }
 }
 .animate-fade-in-up {
-  animation: fadeInUp 0.7s cubic-bezier(.39,.575,.565,1) both;
+  animation: fadeInUp 0.7s cubic-bezier(.39,.575,.565,1) both;u
 }
 </style> 

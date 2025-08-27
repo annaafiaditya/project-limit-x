@@ -83,6 +83,17 @@ nav {
                         <a href="{{ route('mikrobiologi-forms.create') }}">Buat Form Baru</a>
                     </div>
                 </div>
+                <!-- Dropdown Kimia -->
+                <div x-data="{ open: false }" class="relative h-14 flex items-center">
+                    <button @click="open = !open" type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-500 hover:bg-purple-600 focus:outline-none transition ease-in-out duration-150">
+                        Kimia
+                        <svg class="ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div x-show="open" @click.away="open = false" class="absolute left-0 z-10 modern-dropdown mt-2" x-transition>
+                        <a href="{{ route('kimia.index') }}">Data Form Kimia</a>
+                        <a href="{{ route('kimia.create') }}">Buat Form Baru</a>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- Settings Dropdown -->

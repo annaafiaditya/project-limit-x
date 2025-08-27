@@ -40,6 +40,38 @@ document.addEventListener('DOMContentLoaded', function() {
             approvalBtn.onclick = function() {
                 window.location.href = "{{ route('mikrobiologi-forms.index') }}?approval=pending";
             };
+
+            // KIMIA widgets
+            // Donut Kimia judul
+            const ctxKimia = document.getElementById('kimiaJudulDonutChart').getContext('2d');
+            new Chart(ctxKimia, {
+                type: 'doughnut',
+                data: {
+                    labels: data.kimia_judul_labels,
+                    datasets: [{
+                        data: data.kimia_judul_data,
+                        backgroundColor: [
+                            '#b5d8f8', '#b9e4c9', '#ffe6a7', '#f9c6c9', '#d6c8f5', '#b8e8f4', '#f7c6e0', '#fff3b0', '#c7f9cc', '#ffd6d6'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: true, position: 'bottom' } },
+                    cutout: '75%',
+                    responsive: true,
+                }
+            });
+
+            // Entry count Kimia
+            document.getElementById('kimiaEntryCount').textContent = data.kimia_entry_count;
+
+            // Approval pending Kimia
+            const approvalKimiaBtn = document.getElementById('kimiaApprovalPendingBtn');
+            approvalKimiaBtn.textContent = data.kimia_approval_pending;
+            approvalKimiaBtn.onclick = function() {
+                window.location.href = "{{ route('kimia.index') }}?approval=pending";
+            };
         });
 });
 </script>
@@ -82,23 +114,23 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="d-flex flex-column gap-3">
                 <div class="d-flex align-items-start p-3 rounded shadow-sm bg-white" style="border-left: 4px solid #34d399;">
                     <i class="bi bi-arrow-right-circle-fill text-success me-3" style="font-size: 1.4rem;"></i>
-                    <div style="font-size: 1.08rem;">Pilih menu di atas untuk mengakses data atau membuat form baru.</div>
+                    <div style="font-size: 1.08rem;">Gunakan <strong>Aksi Cepat</strong> untuk membuka Data/Form <strong>Mikrobiologi</strong> dan <strong>Kimia</strong>.</div>
                 </div>
                 <div class="d-flex align-items-start p-3 rounded shadow-sm bg-white" style="border-left: 4px solid #34d399;">
                     <i class="bi bi-arrow-right-circle-fill text-success me-3" style="font-size: 1.4rem;"></i>
-                    <div style="font-size: 1.08rem;">Isi data pada form sesuai kebutuhan laboratorium.</div>
+                    <div style="font-size: 1.08rem;">Pada <strong>Kimia</strong>, Anda dapat membuat <strong>lebih dari satu tabel</strong> di dalam satu form. Tambah tabel dari bagian “Tabel pada Form Ini”, lalu tambah kolom dan input data per tabel.</div>
                 </div>
                 <div class="d-flex align-items-start p-3 rounded shadow-sm bg-white" style="border-left: 4px solid #34d399;">
                     <i class="bi bi-arrow-right-circle-fill text-success me-3" style="font-size: 1.4rem;"></i>
-                    <div style="font-size: 1.08rem;">Ada fitur tamplate form di menu data form mikrobiologi, dimana tamplate form itu untuk menduplikat atau memakai kembali form yang telah anda buat tanpa perlu membuat tabel lagi.</div>
+                    <div style="font-size: 1.08rem;">Fitur <strong>Template</strong> tersedia untuk <strong>Mikrobiologi</strong> dan <strong>Kimia</strong> (duplikasi form tanpa menyusun tabel ulang).</div>
                 </div>
                 <div class="d-flex align-items-start p-3 rounded shadow-sm bg-white" style="border-left: 4px solid #34d399;">
                     <i class="bi bi-arrow-right-circle-fill text-success me-3" style="font-size: 1.4rem;"></i>
-                    <div style="font-size: 1.08rem;">Simpan data, dan lakukan approval atau tanda tangan.</div>
+                    <div style="font-size: 1.08rem;">Lakukan <strong>approval/tanda tangan</strong> pada 3 peran (Technician, Staff, Supervisor). Dashboard menampilkan jumlah yang <em>menunggu approval</em> untuk masing‑masing modul.</div>
                 </div>
                 <div class="d-flex align-items-start p-3 rounded shadow-sm bg-white" style="border-left: 4px solid #34d399;">
                     <i class="bi bi-arrow-right-circle-fill text-success me-3" style="font-size: 1.4rem;"></i>
-                    <div style="font-size: 1.08rem;">Data yang sudah diinput bisa dipantau, diubah, atau diunduh sesuai kebutuhan.</div>
+                    <div style="font-size: 1.08rem;">Pantau ringkasan di dashboard: <strong>diagram judul</strong>, <strong>total entry</strong>, dan <strong>approval pending</strong> untuk Mikrobiologi dan Kimia.</div>
                 </div>
             </div>
         </div>
@@ -134,48 +166,80 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
 
-        <!-- Quick Actions & Catatan -->
+        <!-- Statistik Kimia -->
+        <div class="col-12 col-lg-10 mb-4 fade-slide-up fade-slide-up-delay-2">
+            <div class="row g-3 align-items-stretch">
+                <div class="col-12 col-md-4">
+                    <div class="card shadow-sm border-0 text-center p-3 d-flex flex-column justify-content-center align-items-center h-100" style="border-radius:1.2rem; background:linear-gradient(120deg,#e0f2fe 0%, #f8fafc 100%); min-height:220px;">
+                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-pie-chart me-2"></i> Diagram Judul Form Kimia</h6>
+                        <div style="width:100%; max-width:180px; margin:0 auto;">
+                            <canvas id="kimiaJudulDonutChart" height="140"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="card shadow-sm border-0 text-center py-4 d-flex flex-column justify-content-center align-items-center h-100" style="border-radius:1.2rem; background:linear-gradient(120deg,#eef2ff 0%,#f8fafc 100%); min-height:220px;">
+                        <div class="mb-2"><i class="bi bi-list-task text-primary" style="font-size:2.2rem;"></i></div>
+                        <div class="fw-bold" id="kimiaEntryCount" style="font-size:1.7rem;">...</div>
+                        <div class="text-secondary">Entry Data Kimia</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="card shadow-sm border-0 text-center py-4 d-flex flex-column justify-content-center align-items-center h-100" style="border-radius:1.2rem; background:linear-gradient(120deg,#f7fff7 0%,#e0f2fe 100%); min-height:220px;">
+                        <div class="mb-2"><i class="bi bi-person-check text-primary" style="font-size:2.2rem;"></i></div>
+                        <button id="kimiaApprovalPendingBtn" class="btn btn-primary fw-bold px-4 py-2 mt-2" style="font-size:1.1rem; border-radius:1.2rem;">...</button>
+                        <div class="text-secondary mt-2">Menunggu Approval Kimia</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions (Mikrobiologi kiri, Kimia kanan) -->
         <div class="col-12 col-lg-10 mb-4 fade-slide-up fade-slide-up-delay-3">
-            <div class="card shadow border-0 p-4" style="border-radius:1.3rem; background: #f8fafc;">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="fw-bold mb-2 text-primary d-flex align-items-center" style="font-size:1.1rem;">
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <div class="card shadow border-0 p-4 h-100" style="border-radius:1.3rem; background:#f8fafc;">
+                        <h5 class="fw-bold mb-3 text-primary d-flex align-items-center" style="font-size:1.1rem;">
                         <i class="bi bi-lightning-charge me-2"></i> Aksi Cepat Mikrobiologi
                     </h5>
-                    <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary px-3 py-2 ms-2" style="border-radius:1.2rem; font-weight:500;">
-                        <i class="bi bi-person me-1"></i> Profil
-                    </a>
-                </div>
-                <div class="d-flex flex-wrap gap-2 mb-4">
+                        <div class="d-flex flex-wrap gap-2">
                     <a href="{{ route('mikrobiologi-forms.create') }}" class="btn btn-outline-success px-3 py-2" style="border-radius:1.2rem; font-weight:500;"><i class="bi bi-plus-circle me-1"></i> Form Baru</a>
                     <a href="{{ route('mikrobiologi-forms.index') }}" class="btn btn-outline-info px-3 py-2" style="border-radius:1.2rem; font-weight:500;"><i class="bi bi-table me-1"></i> Data Form</a>
                     <a href="{{ route('mikrobiologi-forms.index') }}?template=1" class="btn btn-outline-warning px-3 py-2" style="border-radius:1.2rem; font-weight:500;"><i class="bi bi-files me-1"></i> Template Form</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="card shadow border-0 p-4 h-100" style="border-radius:1.3rem; background:#f8fafc;">
+                        <h5 class="fw-bold mb-3 text-primary d-flex align-items-center" style="font-size:1.1rem;">
+                            <i class="bi bi-lightning-charge me-2"></i> Aksi Cepat Kimia
+                        </h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ route('kimia.create') }}" class="btn btn-outline-primary px-3 py-2" style="border-radius:1.2rem; font-weight:500;"><i class="bi bi-plus-circle me-1"></i> Form Kimia Baru</a>
+                            <a href="{{ route('kimia.index') }}" class="btn btn-outline-info px-3 py-2" style="border-radius:1.2rem; font-weight:500;"><i class="bi bi-table me-1"></i> Data Form Kimia</a>
+                            <a href="{{ route('kimia.index') }}?template=1" class="btn btn-outline-warning px-3 py-2" style="border-radius:1.2rem; font-weight:500;"><i class="bi bi-files me-1"></i> Template Form</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-12">
+        <!-- Catatan (paling bawah) -->
+        <div class="col-12 col-lg-10 mb-4 fade-slide-up fade-slide-up-delay-4">
+            <div class="card shadow border-0 p-4" style="border-radius:1.3rem; background:#f8fafc;">
                         <h4 class="fw-bold mb-3 text-success d-flex align-items-center" style="font-size:1.2rem;">
                             <i class="bi bi-journal-text me-2"></i> Catatan Saya
                         </h4>
                         <form method="POST" action="{{ route('dashboard.note') }}">
                             @csrf
-                            <textarea name="note" class="form-control mb-2" rows="5"
-    placeholder="Tulis catatan pribadi di sini..."
-    style="border-radius: 1rem; background: #f8fafc; font-size:1.05rem; resize: vertical; width: 100%;">{{ trim(old('note', Auth::user()->note ?? '')) }}</textarea>
-
+                    <textarea name="note" class="form-control mb-2" rows="5" placeholder="Tulis catatan pribadi di sini..." style="border-radius:1rem; background:#f8fafc; font-size:1.05rem; resize:vertical; width:100%;">{{ trim(old('note', Auth::user()->note ?? '')) }}</textarea>
                             <div class="text-end">
-                                <button type="submit" class="btn btn-success px-4 py-2 mt-1"
-                                        style="border-radius: 1.2rem; font-weight:500; font-size:0.98rem;">
-                                    Simpan
-                                </button>
+                        <button type="submit" class="btn btn-success px-4 py-2 mt-1" style="border-radius:1.2rem; font-weight:500; font-size:0.98rem;">Simpan</button>
                             </div>
                             @if(session('note_saved'))
-                                <div class="alert alert-success mt-2" style="border-radius:1rem; font-size:0.97rem;">
-                                    Catatan berhasil disimpan!
-                                </div>
+                        <div class="alert alert-success mt-2" style="border-radius:1rem; font-size:0.97rem;">Catatan berhasil disimpan!</div>
                             @endif
                         </form>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

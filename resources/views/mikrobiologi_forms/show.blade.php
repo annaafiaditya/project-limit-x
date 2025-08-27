@@ -21,6 +21,8 @@
             </div>
             <div class="flex gap-2">
                 <a href="{{ route('mikrobiologi-forms.edit', ['mikrobiologi_form' => $form->id]) }}" class="btn btn-warning btn-sm text-white fw-bold px-3 py-1">Edit</a>
+                <a href="{{ route('mikrobiologi-forms.export', ['mikrobiologi_form' => $form->id]) }}" class="btn btn-success btn-sm fw-bold px-3 py-1">Export Excel</a>
+                <a href="{{ route('mikrobiologi-forms.export-pdf', ['mikrobiologi_form' => $form->id]) }}" class="btn btn-danger btn-sm fw-bold px-3 py-1" target="_blank">Export PDF</a>
                 <a href="{{ route('mikrobiologi-forms.index') }}" class="btn btn-secondary btn-sm fw-bold px-3 py-1">Kembali</a>
             </div>
         </div>

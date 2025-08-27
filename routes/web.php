@@ -21,19 +21,37 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard');
     })->name('dashboard');
     Route::get('/dashboard/data', function () {
+        // Mikrobiologi stats
         $judulCounts = \App\Models\MikrobiologiForm::select('title')
             ->get()
             ->groupBy('title')
-            ->map(function($forms, $title) {
+            ->map(function($forms) {
                 return $forms->count();
             });
         $entryCount = \App\Models\MikrobiologiEntry::count();
         $approvalPending = \App\Models\MikrobiologiForm::whereHas('signatures', function($q){ $q->where('status', 'accept'); }, '<', 3)->count();
+
+        // Kimia stats
+        $kimiaJudulCounts = \App\Models\KimiaForm::select('title')
+            ->get()
+            ->groupBy('title')
+            ->map(function($forms) {
+                return $forms->count();
+            });
+        $kimiaEntryCount = \App\Models\KimiaEntry::count();
+        $kimiaApprovalPending = \App\Models\KimiaForm::whereHas('signatures', function($q){ $q->where('status', 'accept'); }, '<', 3)->count();
+
         return response()->json([
+            // Mikrobiologi
             'judul_labels' => $judulCounts->keys()->values(),
             'judul_data' => $judulCounts->values(),
             'entry_count' => $entryCount,
             'approval_pending' => $approvalPending,
+            // Kimia
+            'kimia_judul_labels' => $kimiaJudulCounts->keys()->values(),
+            'kimia_judul_data' => $kimiaJudulCounts->values(),
+            'kimia_entry_count' => $kimiaEntryCount,
+            'kimia_approval_pending' => $kimiaApprovalPending,
         ]);
     })->name('dashboard.data');
     Route::post('/dashboard/note', function (Illuminate\Http\Request $request) {
@@ -56,6 +74,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/entries/{mikrobiologiEntry}', [MikrobiologiEntryController::class, 'update'])->name('entries.update');
     Route::get('/template-forms/unique-titles', [App\Http\Controllers\MikrobiologiFormController::class, 'uniqueTitles'])->name('template-forms.unique-titles');
     Route::get('/mikrobiologi-forms/{mikrobiologi_form}/export', [App\Http\Controllers\MikrobiologiFormController::class, 'export'])->name('mikrobiologi-forms.export');
+    Route::get('/mikrobiologi-forms/{mikrobiologi_form}/export-pdf', [App\Http\Controllers\MikrobiologiFormController::class, 'exportPdf'])->name('mikrobiologi-forms.export-pdf');
     // PATCH: Filter approval di index mikrobiologi-forms
     Route::get('/mikrobiologi-forms', function (Illuminate\Http\Request $request) {
         $search = $request->input('search');
@@ -97,6 +116,35 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Kimia Routes
+    Route::get('/kimia', [App\Http\Controllers\KimiaController::class, 'index'])->name('kimia.index');
+    Route::get('/kimia/create', [App\Http\Controllers\KimiaController::class, 'create'])->name('kimia.create');
+    Route::post('/kimia', [App\Http\Controllers\KimiaController::class, 'store'])->name('kimia.store');
+    Route::get('/kimia/{kimia_form}', [App\Http\Controllers\KimiaController::class, 'show'])->name('kimia.show');
+    Route::get('/kimia/{kimia_form}/edit', [App\Http\Controllers\KimiaController::class, 'edit'])->name('kimia.edit');
+    Route::put('/kimia/{kimia_form}', [App\Http\Controllers\KimiaController::class, 'update'])->name('kimia.update');
+    Route::delete('/kimia/{kimia_form}', [App\Http\Controllers\KimiaController::class, 'destroy'])->name('kimia.destroy');
+    Route::post('/kimia/{kimia_form}/tables', [App\Http\Controllers\KimiaController::class, 'addTable'])->name('kimia.tables.add');
+    
+    // Kimia Columns & Entries
+    Route::post('/kimia-columns', [App\Http\Controllers\KimiaController::class, 'storeColumn'])->name('kimia-columns.store');
+    Route::delete('/kimia-columns/{kimiaColumn}', [App\Http\Controllers\KimiaController::class, 'destroyColumn'])->name('kimia-columns.destroy');
+    Route::post('/kimia-entries', [App\Http\Controllers\KimiaController::class, 'storeEntry'])->name('kimia-entries.store');
+    Route::delete('/kimia-entries/{kimiaEntry}', [App\Http\Controllers\KimiaController::class, 'destroyEntry'])->name('kimia-entries.destroy');
+    
+    // Kimia Signatures
+    Route::post('/kimia/{kimia_form}/signatures', [App\Http\Controllers\KimiaController::class, 'storeSignature'])->name('kimia.signatures.store');
+    
+    // Kimia Export
+    Route::get('/kimia/{kimia_form}/export', [App\Http\Controllers\KimiaController::class, 'export'])->name('kimia.export');
+    Route::get('/kimia/{kimia_form}/export-pdf', [App\Http\Controllers\KimiaController::class, 'exportPdf'])->name('kimia.export-pdf');
+    // Kimia Print (PDF via browser)
+    Route::get('/kimia/{kimia_form}/print', function (App\Models\KimiaForm $kimia_form) {
+        $tables = $kimia_form->tables()->with(['columns' => function($q){ $q->orderBy('urutan'); }, 'entries'])->get();
+        $signatures = $kimia_form->signatures()->get();
+        return view('kimia_forms.print', compact('kimia_form', 'tables', 'signatures'));
+    })->name('kimia.print');
 });
 
 require __DIR__.'/auth.php';
