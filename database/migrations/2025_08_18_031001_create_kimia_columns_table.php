@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('kimia_columns', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('form_id')->constrained('kimia_forms')->onDelete('cascade');
+            $table->foreignId('table_id')->nullable()->constrained('kimia_tables')->nullOnDelete();
+            $table->string('nama_kolom');
+            $table->string('tipe_kolom');
+            $table->unsignedInteger('urutan')->default(0);
             $table->timestamps();
         });
     }

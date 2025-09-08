@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('kimia_signatures', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('form_id')->constrained('kimia_forms')->onDelete('cascade');
+            $table->string('role');
+            $table->string('name');
+            $table->string('jabatan')->nullable();
+            $table->string('tanda_tangan')->nullable();
+            $table->date('tanggal')->nullable();
+            $table->string('status')->default('pending');
             $table->timestamps();
         });
     }

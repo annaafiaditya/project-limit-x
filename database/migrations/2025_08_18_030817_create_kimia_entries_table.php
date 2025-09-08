@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('kimia_entries', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('form_id')->constrained('kimia_forms')->onDelete('cascade');
+            $table->foreignId('table_id')->nullable()->constrained('kimia_tables')->nullOnDelete();
+            $table->json('data')->nullable();
             $table->timestamps();
         });
     }

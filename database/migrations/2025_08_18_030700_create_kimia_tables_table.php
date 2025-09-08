@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('avoid_conflict', function (Blueprint $table) {
-            //
+        Schema::create('kimia_tables', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('form_id')->constrained('kimia_forms')->onDelete('cascade');
+            $table->string('name');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +24,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('avoid_conflict', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('kimia_tables');
     }
 };
+
+
