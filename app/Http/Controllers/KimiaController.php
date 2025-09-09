@@ -181,6 +181,22 @@ class KimiaController extends Controller
         return back()->with('success', 'Kolom berhasil ditambahkan!');
     }
 
+    public function updateColumn(Request $request, KimiaColumn $kimiaColumn)
+    {
+        $validated = $request->validate([
+            'nama_kolom' => 'required|string',
+            'tipe_kolom' => 'required|in:string,integer,date,time,decimal',
+            'urutan' => 'nullable|integer',
+        ]);
+        
+        $kimiaColumn->update($validated);
+        
+        if ($request->wantsJson()) {
+            return response()->json($kimiaColumn);
+        }
+        return back()->with('success', 'Kolom berhasil diupdate!');
+    }
+
     public function destroyColumn(KimiaColumn $kimiaColumn)
     {
         $kimiaColumn->delete();
@@ -199,6 +215,25 @@ class KimiaController extends Controller
         KimiaEntry::create($validated);
         
         return back()->with('success', 'Data entry berhasil ditambah!');
+    }
+
+    public function updateEntry(Request $request, KimiaEntry $kimiaEntry)
+    {
+        try {
+            $validated = $request->validate([
+                'data' => 'required|array',
+            ]);
+            $kimiaEntry->update($validated);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'updated' => true]);
+            }
+            return redirect()->route('kimia.show', ['kimia_form' => $kimiaEntry->form_id])->with('success', 'Data entry berhasil diupdate!');
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal update entry: ' . $e->getMessage()], 500);
+            }
+            return redirect()->back()->with('error', 'Gagal update entry!');
+        }
     }
 
     public function destroyEntry(KimiaEntry $kimiaEntry)

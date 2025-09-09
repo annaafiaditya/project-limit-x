@@ -129,8 +129,10 @@ Route::middleware('auth')->group(function () {
     
     // Kimia Columns & Entries
     Route::post('/kimia-columns', [App\Http\Controllers\KimiaController::class, 'storeColumn'])->name('kimia-columns.store');
+    Route::put('/kimia-columns/{kimiaColumn}', [App\Http\Controllers\KimiaController::class, 'updateColumn'])->name('kimia-columns.update');
     Route::delete('/kimia-columns/{kimiaColumn}', [App\Http\Controllers\KimiaController::class, 'destroyColumn'])->name('kimia-columns.destroy');
     Route::post('/kimia-entries', [App\Http\Controllers\KimiaController::class, 'storeEntry'])->name('kimia-entries.store');
+    Route::put('/kimia-entries/{kimiaEntry}', [App\Http\Controllers\KimiaController::class, 'updateEntry'])->name('kimia-entries.update');
     Route::delete('/kimia-entries/{kimiaEntry}', [App\Http\Controllers\KimiaController::class, 'destroyEntry'])->name('kimia-entries.destroy');
     
     // Kimia Signatures

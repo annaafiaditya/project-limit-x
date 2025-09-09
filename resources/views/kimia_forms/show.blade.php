@@ -77,9 +77,15 @@
             .dynamic-btn { background: #93c5fd; color: #222; border: none; border-radius: 1.2rem; font-weight: 600; font-size: 1rem; letter-spacing: 1px; box-shadow: 0 2px 8px #0002; padding: 0.5rem 1.2rem; margin: 0 0.2rem; transition: all .2s; }
             .dynamic-btn:hover, .dynamic-btn:focus { background: #60a5fa; color: #222; }
             .dynamic-input, .dynamic-select { background: #fff; color: #222; border: 1px solid #bbb; border-radius: 0.7rem; padding: 0.4rem 0.8rem; margin-bottom: 0.2rem; }
-            .action-btn { border-radius: 0.7rem; padding: 0.3rem 0.7rem; font-size: 0.98em; margin-right: 0.2rem; display: inline-flex; align-items: center; gap: 0.3em; }
-            .action-btn-edit { background: #facc15; color: #222; } .action-btn-edit:hover { background: #eab308; color: #222; }
-            .action-btn-delete { background: #ef4444; color: #fff; } .action-btn-delete:hover { background: #b91c1c; color: #fff; }
+            .action-btn { border-radius: 0.7rem; padding: 0.4rem 0.8rem; font-size: 0.9em; margin-right: 0.3rem; display: inline-flex; align-items: center; gap: 0.3em; font-weight: 500; transition: all 0.2s ease; border: none; cursor: pointer; }
+            .action-btn-edit { background: #3b82f6; color: #fff; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3); } 
+            .action-btn-edit:hover { background: #2563eb; color: #fff; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4); }
+            .action-btn-save { background: #10b981; color: #fff; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3); }
+            .action-btn-save:hover { background: #059669; color: #fff; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4); }
+            .action-btn-cancel { background: #6b7280; color: #fff; box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3); }
+            .action-btn-cancel:hover { background: #4b5563; color: #fff; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(107, 114, 128, 0.4); }
+            .action-btn-delete { background: #ef4444; color: #fff; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3); } 
+            .action-btn-delete:hover { background: #dc2626; color: #fff; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4); }
         </style>
         <div class="dynamic-card" style="border-left:6px solid {{ $accent }};">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -112,15 +118,22 @@
                     </thead>
                     <tbody>
                         @foreach($table->columns as $col)
-                        <tr>
-                            <td>{{ $col->nama_kolom }}</td>
-                            <td>{{ ucfirst($col->tipe_kolom) }}</td>
+                        <tr id="kimia-kolom-row-{{ $col->id }}">
+                            <td class="kimia-kolom-nama">{{ $col->nama_kolom }}</td>
+                            <td class="kimia-kolom-tipe">{{ ucfirst($col->tipe_kolom) }}</td>
                             <td>
-                                <form action="{{ route('kimia-columns.destroy', $col) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus kolom ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="action-btn action-btn-delete">Hapus</button>
-                                </form>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="action-btn action-btn-edit kimia-edit-col" data-id="{{ $col->id }}">
+                                        <i class="bi bi-pencil-square me-1"></i>Edit
+                                    </button>
+                                    <form action="{{ route('kimia-columns.destroy', $col) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus kolom ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="action-btn action-btn-delete">
+                                            <i class="bi bi-trash me-1"></i>Hapus
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         @endforeach
@@ -172,9 +185,9 @@
                 </thead>
                 <tbody>
                     @foreach($table->entries as $entry)
-                    <tr>
+                    <tr id="kimia-entry-row-{{ $entry->id }}">
                         @foreach($table->columns as $col)
-                            <td>
+                            <td class="kimia-entry-col" data-col-id="{{ $col->id }}">
                                 @if(isset($entry->data[$col->id]))
                                     @if($col->tipe_kolom === 'date')
                                         {{ \Carbon\Carbon::parse($entry->data[$col->id])->format('d/m/Y') }}
@@ -191,11 +204,18 @@
                             </td>
                         @endforeach
                         <td>
-                            <form action="{{ route('kimia-entries.destroy', $entry) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus data ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="action-btn action-btn-delete">Hapus</button>
-                            </form>
+                            <div class="d-flex gap-1">
+                                <button type='button' class='kimia-entry-edit-btn action-btn action-btn-edit' data-id='{{ $entry->id }}'>
+                                    <i class="bi bi-pencil-square me-1"></i>Edit
+                                </button>
+                                <form action="{{ route('kimia-entries.destroy', $entry) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus data ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="action-btn action-btn-delete">
+                                        <i class="bi bi-trash me-1"></i>Hapus
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @endforeach
@@ -286,6 +306,151 @@
         const el = document.getElementById('table-content-' + id);
         if(!el) return;
         el.style.display = (el.style.display === 'none') ? '' : 'none';
-}
+    }
+
+    function showNotif(msg, type) {
+        let notif = document.getElementById('ajax-notif');
+        if (!notif) {
+            notif = document.createElement('div');
+            notif.id = 'ajax-notif';
+            notif.className = 'alert alert-' + type;
+            notif.style.position = 'fixed';
+            notif.style.top = '20px';
+            notif.style.right = '20px';
+            notif.style.zIndex = 9999;
+            document.body.appendChild(notif);
+        }
+        notif.className = 'alert alert-' + type;
+        notif.innerText = msg;
+        notif.style.display = 'block';
+        setTimeout(() => notif.style.display = 'none', 2000);
+    }
+
+    // Kimia Column Edit Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Edit Kimia Columns
+        document.addEventListener('click', function(e) {
+            const editBtn = e.target.closest('.kimia-edit-col');
+            if (editBtn) {
+                const id = editBtn.dataset.id;
+                const tr = document.getElementById('kimia-kolom-row-' + id);
+                const nama = tr.querySelector('.kimia-kolom-nama').innerText;
+                const tipe = tr.querySelector('.kimia-kolom-tipe').innerText.toLowerCase();
+                tr.innerHTML = `<td><input type='text' class='dynamic-input' value='${nama}' id='edit-kimia-nama-${id}'></td>` +
+                    `<td><select class='dynamic-select' id='edit-kimia-tipe-${id}'>` +
+                    `<option value='string' ${tipe==='string'?'selected':''}>Teks</option>` +
+                    `<option value='integer' ${tipe==='integer'?'selected':''}>Angka</option>` +
+                    `<option value='decimal' ${tipe==='decimal'?'selected':''}>Desimal</option>` +
+                    `<option value='date' ${tipe==='date'?'selected':''}>Tanggal</option>` +
+                    `<option value='time' ${tipe==='time'?'selected':''}>Jam</option>` +
+                    `</select></td>` +
+                    `<td><div class="d-flex gap-1"><button type='button' class='action-btn action-btn-save kimia-save-col' data-id='${id}'><i class="bi bi-check-lg me-1"></i>Simpan</button>` +
+                    `<button type='button' class='action-btn action-btn-cancel kimia-cancel-col' data-id='${id}'><i class="bi bi-x-lg me-1"></i>Batal</button></div></td>`;
+            }
+
+            // Save Kimia Column
+            const saveBtn = e.target.closest('.kimia-save-col');
+            if (saveBtn) {
+                const id = saveBtn.dataset.id;
+                const tr = document.getElementById('kimia-kolom-row-' + id);
+                const nama = tr.querySelector(`#edit-kimia-nama-${id}`).value;
+                const tipe = tr.querySelector(`#edit-kimia-tipe-${id}`).value;
+                fetch(`/kimia-columns/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ nama_kolom: nama, tipe_kolom: tipe }),
+                    credentials: 'same-origin',
+                })
+                .then(res => res.json().then(json => ({ok: res.ok, json})))
+                .then(({ok, json}) => {
+                    if (ok) {
+                        tr.innerHTML = `<td class='kimia-kolom-nama'>${json.nama_kolom}</td><td class='kimia-kolom-tipe'>${json.tipe_kolom.charAt(0).toUpperCase()+json.tipe_kolom.slice(1)}</td><td><div class="d-flex gap-1"><button type='button' class='action-btn action-btn-edit kimia-edit-col' data-id='${id}'><i class="bi bi-pencil-square me-1"></i>Edit</button><form action="/kimia-columns/${id}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus kolom ini?')"><input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}"><input type="hidden" name="_method" value="DELETE"><button type="submit" class="action-btn action-btn-delete"><i class="bi bi-trash me-1"></i>Hapus</button></form></div></td>`;
+                        showNotif('Kolom berhasil diupdate', 'success');
+                    } else {
+                        showNotif(json.message || 'Gagal update kolom', 'danger');
+                    }
+                })
+                .catch(err => showNotif(err.message, 'danger'));
+            }
+
+            // Cancel Kimia Column
+            const cancelBtn = e.target.closest('.kimia-cancel-col');
+            if (cancelBtn) {
+                location.reload();
+            }
+
+            // Edit Kimia Entry
+            const editEntryBtn = e.target.closest('.kimia-entry-edit-btn');
+            if (editEntryBtn) {
+                const id = editEntryBtn.dataset.id;
+                const row = document.getElementById('kimia-entry-row-' + id);
+                if (!row) return;
+                // Simpan data lama
+                const oldData = [];
+                row.querySelectorAll('.kimia-entry-col').forEach(td => oldData.push(td.innerText));
+                // Ganti ke input
+                @foreach($tables as $table)
+                    @foreach($table->columns as $col)
+                row.querySelector('.kimia-entry-col[data-col-id="{{ $col->id }}"]').innerHTML = `<input type='{{ $col->tipe_kolom === 'integer' ? 'number' : ($col->tipe_kolom === 'decimal' ? 'number' : ($col->tipe_kolom === 'date' ? 'date' : ($col->tipe_kolom === 'time' ? 'time' : 'text'))) }}' class='dynamic-input kimia-entry-edit-input' value='${row.querySelector('.kimia-entry-col[data-col-id="{{ $col->id }}"]').innerText}' data-col-id='{{ $col->id }}' {{ $col->tipe_kolom === 'decimal' ? 'step="0.01"' : '' }}>`;
+                    @endforeach
+                @endforeach
+                // Ganti tombol aksi
+                row.querySelector('td:last-child').innerHTML = `<div class="d-flex gap-1"><button type='button' class='kimia-entry-save-btn action-btn action-btn-save' data-id='${id}'><i class="bi bi-check-lg me-1"></i>Simpan</button><button type='button' class='kimia-entry-cancel-btn action-btn action-btn-cancel' data-id='${id}'><i class="bi bi-x-lg me-1"></i>Batal</button></div>`;
+            }
+
+            // Save Kimia Entry
+            const saveEntryBtn = e.target.closest('.kimia-entry-save-btn');
+            if (saveEntryBtn) {
+                const id = saveEntryBtn.dataset.id;
+                const row = document.getElementById('kimia-entry-row-' + id);
+                const data = {};
+                row.querySelectorAll('.kimia-entry-edit-input').forEach(input => {
+                    data[input.dataset.colId] = input.value;
+                });
+                fetch(`/kimia-entries/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ data })
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Gagal update entry');
+                    return res.json();
+                })
+                .then(json => {
+                    if (json.success || json.updated) {
+                        // Update tampilan baris
+                        @foreach($tables as $table)
+                            @foreach($table->columns as $col)
+                        row.querySelector('.kimia-entry-col[data-col-id="{{ $col->id }}"]').innerText = data['{{ $col->id }}'];
+                            @endforeach
+                        @endforeach
+                        row.querySelector('td:last-child').innerHTML = `<div class="d-flex gap-1"><button type='button' class='kimia-entry-edit-btn action-btn action-btn-edit' data-id='${id}'><i class="bi bi-pencil-square me-1"></i>Edit</button><form action="/kimia-entries/${id}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus data ini?')"><input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}"><input type="hidden" name="_method" value="DELETE"><button type="submit" class="action-btn action-btn-delete"><i class="bi bi-trash me-1"></i>Hapus</button></form></div>`;
+                        showNotif('Entry berhasil diupdate', 'success');
+                    } else {
+                        showNotif(json.message || 'Gagal update entry', 'danger');
+                    }
+                })
+                .catch(err => {
+                    showNotif('Terjadi error saat update entry: ' + err.message, 'danger');
+                    console.error(err);
+                });
+            }
+
+            // Cancel Kimia Entry
+            const cancelEntryBtn = e.target.closest('.kimia-entry-cancel-btn');
+            if (cancelEntryBtn) {
+                location.reload();
+            }
+        });
+    });
 </script>
 @endpush

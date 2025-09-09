@@ -31,7 +31,7 @@ class MikrobiologiColumnController extends Controller
         $validated = $request->validate([
             'form_id' => 'required|exists:mikrobiologi_forms,id',
             'nama_kolom' => 'required|string',
-            'tipe_kolom' => 'required|string',
+            'tipe_kolom' => 'required|in:string,integer,decimal,date,time',
             'urutan' => 'nullable|integer',
         ]);
         $col = MikrobiologiColumn::create($validated);
@@ -62,7 +62,7 @@ class MikrobiologiColumnController extends Controller
         $col = MikrobiologiColumn::findOrFail($id);
         $validated = $request->validate([
             'nama_kolom' => 'required|string',
-            'tipe_kolom' => 'required|string',
+            'tipe_kolom' => 'required|in:string,integer,decimal,date,time',
             'urutan' => 'nullable|integer',
         ]);
         $col->update($validated);

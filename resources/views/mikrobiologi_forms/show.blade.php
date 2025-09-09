@@ -120,6 +120,7 @@
                     <select name="tipe_kolom" class="dynamic-select" required>
                         <option value="string">Teks</option>
                         <option value="integer">Angka</option>
+                        <option value="decimal">Desimal</option>
                         <option value="date">Tanggal</option>
                         <option value="time">Jam</option>
                     </select>
@@ -165,6 +166,8 @@
                         <input type="text" name="{{ $name }}" class="dynamic-input w-44" required placeholder="{{ $col->nama_kolom }}">
                     @elseif($col->tipe_kolom === 'integer')
                         <input type="number" name="{{ $name }}" class="dynamic-input w-32" required placeholder="{{ $col->nama_kolom }}">
+                    @elseif($col->tipe_kolom === 'decimal')
+                        <input type="number" step="0.01" name="{{ $name }}" class="dynamic-input w-32" required placeholder="{{ $col->nama_kolom }}">
                     @elseif($col->tipe_kolom === 'date')
                         <input type="date" name="{{ $name }}" class="dynamic-input w-36" required>
                     @elseif($col->tipe_kolom === 'time')
@@ -344,6 +347,7 @@ function addKolomRow(col) {
         div.innerHTML = `<label class="block text-green-900 font-semibold mb-1" style="font-size:0.97em;">${col.nama_kolom}</label>` +
             (col.tipe_kolom === 'string' ? `<input type="text" name="data[${col.id}]" class="dynamic-input w-44" required placeholder="${col.nama_kolom}">`
             : col.tipe_kolom === 'integer' ? `<input type="number" name="data[${col.id}]" class="dynamic-input w-32" required placeholder="${col.nama_kolom}">`
+            : col.tipe_kolom === 'decimal' ? `<input type="number" step="0.01" name="data[${col.id}]" class="dynamic-input w-32" required placeholder="${col.nama_kolom}">`
             : col.tipe_kolom === 'date' ? `<input type="date" name="data[${col.id}]" class="dynamic-input w-36" required>`
             : col.tipe_kolom === 'time' ? `<input type="time" name="data[${col.id}]" class="dynamic-input w-32" required>`
             : `<input type="text" name="data[${col.id}]" class="dynamic-input w-44" required placeholder="${col.nama_kolom}">`);
@@ -407,6 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 `<td><select class='dynamic-select' id='edit-tipe-${id}'>` +
                 `<option value='string' ${tipe==='string'?'selected':''}>Teks</option>` +
                 `<option value='integer' ${tipe==='integer'?'selected':''}>Angka</option>` +
+                `<option value='decimal' ${tipe==='decimal'?'selected':''}>Desimal</option>` +
                 `<option value='date' ${tipe==='date'?'selected':''}>Tanggal</option>` +
                 `<option value='time' ${tipe==='time'?'selected':''}>Jam</option>` +
                 `</select></td>` +
@@ -445,6 +450,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             // Update tipe input
                             if (json.tipe_kolom === 'string') input.type = 'text';
                             else if (json.tipe_kolom === 'integer') input.type = 'number';
+                            else if (json.tipe_kolom === 'decimal') { input.type = 'number'; input.step = '0.01'; }
                             else if (json.tipe_kolom === 'date') input.type = 'date';
                             else if (json.tipe_kolom === 'time') input.type = 'time';
                             else input.type = 'text';
@@ -518,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
             row.querySelectorAll('.entry-col').forEach(td => oldData.push(td.innerText));
             // Ganti ke input
             @foreach($columns as $col)
-            row.querySelector('.entry-col[data-col-id="{{ $col->id }}"]').innerHTML = `<input type='{{ $col->tipe_kolom === 'integer' ? 'number' : ($col->tipe_kolom === 'date' ? 'date' : ($col->tipe_kolom === 'time' ? 'time' : 'text')) }}' class='dynamic-input entry-edit-input' value='${row.querySelector('.entry-col[data-col-id="{{ $col->id }}"]').innerText}' data-col-id='{{ $col->id }}'>`;
+            row.querySelector('.entry-col[data-col-id="{{ $col->id }}"]').innerHTML = `<input type='{{ $col->tipe_kolom === 'integer' ? 'number' : ($col->tipe_kolom === 'decimal' ? 'number' : ($col->tipe_kolom === 'date' ? 'date' : ($col->tipe_kolom === 'time' ? 'time' : 'text'))) }}' class='dynamic-input entry-edit-input' value='${row.querySelector('.entry-col[data-col-id="{{ $col->id }}"]').innerText}' data-col-id='{{ $col->id }}' {{ $col->tipe_kolom === 'decimal' ? 'step="0.01"' : '' }}>`;
             @endforeach
             // Ganti tombol aksi
             row.querySelector('td:last-child').innerHTML = `<button type='button' class='entry-save-btn dynamic-btn action-btn-save' data-id='${id}'>Simpan</button><button type='button' class='entry-cancel-btn dynamic-btn action-btn-cancel' data-id='${id}'>Batal</button>`;
