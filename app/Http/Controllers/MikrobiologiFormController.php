@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Exports\FormExport;
 use App\Exports\MikrobiologiCombinedExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Cache;
 
 class MikrobiologiFormController extends Controller
 {
@@ -45,8 +46,10 @@ class MikrobiologiFormController extends Controller
         }
         
         $forms = $query->with(['entries', 'signatures'])->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
-        $titles = MikrobiologiForm::select('title')->distinct()->orderBy('title')->pluck('title');
-        $template_titles = MikrobiologiForm::select('title')->distinct()->orderBy('title')->pluck('title');
+        $titles = Cache::remember('mikro_distinct_titles', 120, function(){
+            return MikrobiologiForm::select('title')->distinct()->orderBy('title')->pluck('title');
+        });
+        $template_titles = $titles;
         return view('mikrobiologi_forms.index', compact('forms', 'search', 'search_tgl', 'group_title', 'titles', 'perPage', 'template_titles'));
     }
 
@@ -55,7 +58,9 @@ class MikrobiologiFormController extends Controller
         $template = null;
         $columns = collect();
         if ($request->has('template_title')) {
-            $template = \App\Models\MikrobiologiForm::where('title', $request->template_title)->latest()->first();
+            $template = \App\Models\MikrobiologiForm::where('title', $request->template_title)
+                ->with(['columns', 'entries'])
+                ->latest()->first();
             if ($template) {
                 $columns = $template->columns()->orderBy('urutan')->get();
             }

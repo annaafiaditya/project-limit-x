@@ -9,6 +9,7 @@ use App\Models\KimiaSignature;
 use App\Models\KimiaTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class KimiaController extends Controller
 {
@@ -49,8 +50,10 @@ class KimiaController extends Controller
             ->paginate($perPage)
             ->appends($request->except('page'));
         
-        $titles = KimiaForm::select('title')->distinct()->orderBy('title')->pluck('title');
-        $template_titles = KimiaForm::select('title')->distinct()->orderBy('title')->pluck('title');
+        $titles = Cache::remember('kimia_distinct_titles', 120, function(){
+            return KimiaForm::select('title')->distinct()->orderBy('title')->pluck('title');
+        });
+        $template_titles = $titles;
         
         return view('kimia_forms.index', compact('forms', 'search', 'search_tgl', 'group_title', 'titles', 'perPage', 'template_titles'));
     }
@@ -61,7 +64,9 @@ class KimiaController extends Controller
         $tables = collect();
         
         if ($request->has('template_title')) {
-            $template = KimiaForm::where('title', $request->template_title)->latest()->first();
+            $template = KimiaForm::where('title', $request->template_title)
+                ->with(['tables.columns', 'tables.entries'])
+                ->latest()->first();
             if ($template) {
                 $tables = $template->tables()->with(['columns' => function($q){ $q->orderBy('urutan'); }])->get();
             }
@@ -83,7 +88,9 @@ class KimiaController extends Controller
         
         // Duplikat semua tabel jika dari template
         if ($request->has('template_title')) {
-            $template = KimiaForm::where('title', $request->template_title)->latest()->first();
+            $template = KimiaForm::where('title', $request->template_title)
+                ->with(['tables.columns', 'tables.entries'])
+                ->latest()->first();
             if ($template) {
                 foreach ($template->tables as $templateTable) {
                     // Buat tabel baru
