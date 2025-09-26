@@ -320,6 +320,41 @@ class KimiaController extends Controller
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\KimiaFormExport($kimia_form), $filename);
     }
 
+    public function exportAll(Request $request)
+    {
+        $query = KimiaForm::query();
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                  ->orWhere('no', 'like', "%$search%")
+                  ->orWhere('tanggal', 'like', "%$search%");
+            });
+        }
+
+        if ($request->filled('search_tgl')) {
+            $query->whereDate('tanggal', $request->input('search_tgl'));
+        }
+
+        if ($request->filled('group_title')) {
+            $query->where('title', $request->input('group_title'));
+        }
+
+        if ($request->input('approval') === 'pending') {
+            $query->whereHas('signatures', function($q){ $q->where('status', 'accept'); }, '<', 3);
+        }
+
+        $ids = $query->pluck('id')->toArray();
+
+        if (empty($ids)) {
+            return back()->with('export_error', 'Tidak ada data sesuai filter untuk diexport.');
+        }
+
+        $filename = 'Kimia_All_'.now()->format('Ymd_His').'.xlsx';
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\KimiaCombinedExport($ids), $filename);
+    }
+
     public function exportPdf(KimiaForm $kimia_form)
     {
         $tables = $kimia_form->tables()->with(['columns' => function($q){ $q->orderBy('urutan'); }, 'entries'])->get();

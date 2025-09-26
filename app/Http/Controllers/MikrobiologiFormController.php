@@ -6,6 +6,7 @@ use App\Models\MikrobiologiForm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Exports\FormExport;
+use App\Exports\MikrobiologiCombinedExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class MikrobiologiFormController extends Controller
@@ -173,6 +174,46 @@ class MikrobiologiFormController extends Controller
         $no = preg_replace('/[^A-Za-z0-9_\-]/', '_', $mikrobiologi_form->no);
         $filename = $judul.'_'.$no.'.xlsx';
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\FormExport($mikrobiologi_form), $filename);
+    }
+
+    public function exportAll(Request $request)
+    {
+        $query = MikrobiologiForm::query();
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                  ->orWhere('no', 'like', "%$search%")
+                  ->orWhere('tgl_inokulasi', 'like', "%$search%")
+                  ->orWhere('tgl_pengamatan', 'like', "%$search%");
+            });
+        }
+
+        if ($request->filled('search_tgl')) {
+            $search_tgl = $request->input('search_tgl');
+            $query->where(function($q) use ($search_tgl) {
+                $q->whereDate('tgl_inokulasi', $search_tgl)
+                  ->orWhereDate('tgl_pengamatan', $search_tgl);
+            });
+        }
+
+        if ($request->filled('group_title')) {
+            $query->where('title', $request->input('group_title'));
+        }
+
+        if ($request->input('approval') === 'pending') {
+            $query->whereHas('signatures', function($q){ $q->where('status', 'accept'); }, '<', 3);
+        }
+
+        $ids = $query->pluck('id')->toArray();
+
+        if (empty($ids)) {
+            return back()->with('export_error', 'Tidak ada data sesuai filter untuk diexport.');
+        }
+
+        $filename = 'Mikrobiologi_All_'.now()->format('Ymd_His').'.xlsx';
+        return Excel::download(new MikrobiologiCombinedExport($ids), $filename);
     }
 
     public function exportPdf(MikrobiologiForm $mikrobiologi_form)

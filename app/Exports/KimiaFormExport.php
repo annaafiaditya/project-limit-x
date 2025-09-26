@@ -123,15 +123,26 @@ class KimiaFormExport implements FromArray, WithStyles, WithTitle, WithColumnWid
                 $sheet->mergeCells('A1:E1');
                 $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
                 $sheet->getStyle('A1')->getFill()->setFillType('solid')->getStartColor()->setRGB('dbeafe');
-                
                 // Styling untuk setiap tabel - hanya garis tanpa styling lain
                 $currentRow = 6;
                 $tables = $this->form->tables()->with(['columns' => function($q){ $q->orderBy('urutan'); }, 'entries'])->get();
                 
+                // Palet warna untuk membedakan tiap tabel (ARGB/RGB hex tanpa '#')
+                $tableColors = [
+                    'ef4444', // merah
+                    '3b82f6', // biru
+                    '10b981', // hijau
+                    'f59e0b', // amber
+                    '8b5cf6', // ungu
+                    '14b8a6', // teal
+                    'f97316', // oranye
+                    'ec4899', // pink
+                ];
+
                 foreach ($tables as $index => $table) {
                     // Nama tabel tanpa styling
                     $currentRow += 2;
-                    
+
                     $columns = $table->columns;
                     $colCount = count($columns);
                     $colLetterEnd = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colCount);
@@ -145,7 +156,14 @@ class KimiaFormExport implements FromArray, WithStyles, WithTitle, WithColumnWid
                     } else {
                         $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$currentRow)->getBorders()->getAllBorders()->setBorderStyle('thin');
                     }
-                    
+
+                    // Tambahkan garis atas tambahan (double) dengan warna berbeda untuk tiap tabel
+                    $headerRange = 'A'.$currentRow.':'.$colLetterEnd.$currentRow;
+                    $colorHex = $tableColors[$index % count($tableColors)];
+                    $sheet->getStyle($headerRange)->getBorders()->getTop()
+                        ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_DOUBLE);
+                    $sheet->getStyle($headerRange)->getBorders()->getTop()->getColor()->setRGB($colorHex);
+
                     $currentRow += $entryCount + 2;
                 }
                 

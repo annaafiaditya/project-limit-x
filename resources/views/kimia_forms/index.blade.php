@@ -22,17 +22,29 @@
         </div>
     </div>
 
-    <!-- Filter Approval -->
-    <div class="mb-3 d-flex align-items-center gap-2 animate-fade-in-up">
-        <form method="GET" action="{{ route('kimia.index') }}" class="d-inline">
-            <input type="hidden" name="approval" value="pending">
-            <button type="submit" class="btn btn-outline-warning {{ request('approval') == 'pending' ? 'active fw-bold' : '' }}">
-                <i class="bi bi-person-check"></i> Filter Approval (Belum Lengkap)
-            </button>
-        </form>
-        @if(request('approval') == 'pending')
-            <a href="{{ route('kimia.index') }}" class="btn btn-outline-secondary">Tampilkan Semua</a>
-        @endif
+    <!-- Filter Approval + Export All -->
+    <div class="mb-3 d-flex align-items-center justify-content-between animate-fade-in-up">
+        <div class="d-flex align-items-center gap-2">
+            <form method="GET" action="{{ route('kimia.index') }}" class="d-inline">
+                <input type="hidden" name="approval" value="pending">
+                <button type="submit" class="btn btn-outline-warning {{ request('approval') == 'pending' ? 'active fw-bold' : '' }}">
+                    <i class="bi bi-person-check"></i> Filter Approval (Belum Lengkap)
+                </button>
+            </form>
+            @if(request('approval') == 'pending')
+                <a href="{{ route('kimia.index') }}" class="btn btn-outline-secondary">Tampilkan Semua</a>
+            @endif
+        </div>
+        <div>
+            <form method="GET" action="{{ route('kimia.export-all') }}" class="d-inline">
+                @foreach(request()->except('page') as $key => $val)
+                    <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                @endforeach
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-file-earmark-excel"></i> Export Excel (Semua sesuai filter)
+                </button>
+            </form>
+        </div>
     </div>
 
     <!-- Filter -->
@@ -66,6 +78,7 @@
         <div class="alert alert-info py-2 mb-3 animate-fade-in-up">Menampilkan data untuk judul: <b>{{ $group_title }}</b></div>
     @endif
 
+    
     <div class="bg-white shadow rounded-lg overflow-x-auto animate-fade-in-up" style="animation-delay:.15s; animation-duration:.8s;">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-blue-200">
