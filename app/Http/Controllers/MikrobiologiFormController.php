@@ -35,7 +35,15 @@ class MikrobiologiFormController extends Controller
         if ($group_title) {
             $query->where('title', $group_title);
         }
-        $forms = $query->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
+        
+        // Filter approval: show yang accept < 3
+        if ($request->input('approval') === 'pending') {
+            $query->whereHas('signatures', function($q){ 
+                $q->where('status', 'accept'); 
+            }, '<', 3);
+        }
+        
+        $forms = $query->with(['entries', 'signatures'])->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
         $titles = MikrobiologiForm::select('title')->distinct()->orderBy('title')->pluck('title');
         $template_titles = MikrobiologiForm::select('title')->distinct()->orderBy('title')->pluck('title');
         return view('mikrobiologi_forms.index', compact('forms', 'search', 'search_tgl', 'group_title', 'titles', 'perPage', 'template_titles'));

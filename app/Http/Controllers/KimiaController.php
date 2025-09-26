@@ -37,9 +37,11 @@ class KimiaController extends Controller
             $query->where('title', $group_title);
         }
         
-        // Filter approval seperti di Mikrobiologi: show yang accept < 3
+        // Filter approval: show yang accept < 3
         if ($request->input('approval') === 'pending') {
-            $query->whereHas('signatures', function($q){ $q->where('status', 'accept'); }, '<', 3);
+            $query->whereHas('signatures', function($q){ 
+                $q->where('status', 'accept'); 
+            }, '<', 3);
         }
         
         $forms = $query->with(['entries', 'signatures'])
@@ -161,6 +163,28 @@ class KimiaController extends Controller
             'name' => $validated['name']
         ]);
         return redirect()->route('kimia.show', $kimia_form)->with('success', 'Tabel berhasil ditambahkan');
+    }
+
+    public function updateTable(Request $request, KimiaTable $kimiaTable)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string'
+        ]);
+        
+        $kimiaTable->update($validated);
+        
+        if ($request->wantsJson()) {
+            return response()->json($kimiaTable);
+        }
+        return redirect()->route('kimia.show', ['kimia_form' => $kimiaTable->form_id])->with('success', 'Tabel berhasil diupdate!');
+    }
+
+    public function destroyTable(KimiaTable $kimiaTable)
+    {
+        $form_id = $kimiaTable->form_id;
+        $kimiaTable->delete();
+        
+        return redirect()->route('kimia.show', ['kimia_form' => $form_id])->with('success', 'Tabel berhasil dihapus!');
     }
 
     public function storeColumn(Request $request)

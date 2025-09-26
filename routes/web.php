@@ -126,6 +126,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/kimia/{kimia_form}', [App\Http\Controllers\KimiaController::class, 'update'])->name('kimia.update');
     Route::delete('/kimia/{kimia_form}', [App\Http\Controllers\KimiaController::class, 'destroy'])->name('kimia.destroy');
     Route::post('/kimia/{kimia_form}/tables', [App\Http\Controllers\KimiaController::class, 'addTable'])->name('kimia.tables.add');
+    Route::put('/kimia-tables/{kimiaTable}', [App\Http\Controllers\KimiaController::class, 'updateTable'])->name('kimia.tables.update');
+    Route::delete('/kimia-tables/{kimiaTable}', [App\Http\Controllers\KimiaController::class, 'destroyTable'])->name('kimia.tables.destroy');
     
     // Kimia Columns & Entries
     Route::post('/kimia-columns', [App\Http\Controllers\KimiaController::class, 'storeColumn'])->name('kimia-columns.store');

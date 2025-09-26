@@ -37,7 +37,7 @@ class KimiaFormExport implements FromArray, WithStyles, WithTitle, WithColumnWid
             $allData[] = [''];
             
             $columns = $table->columns;
-            $entries = $table->entries;
+            $entries = $table->entries()->orderBy('id')->get();
             
             $tableHeader = $columns->map(fn($col) => $col->nama_kolom)->toArray();
             $allData[] = $tableHeader;
@@ -96,58 +96,6 @@ class KimiaFormExport implements FromArray, WithStyles, WithTitle, WithColumnWid
     
     public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet)
     {
-        // Judul besar dan merge cell
-        $sheet->mergeCells('A1:E1');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(18);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
-        $sheet->getStyle('A1')->getFill()->setFillType('solid')->getStartColor()->setRGB('dbeafe');
-        
-        // Info form
-        $sheet->getStyle('A2:B3')->getFont()->setBold(true);
-        $sheet->getStyle('A2:B3')->getFill()->setFillType('solid')->getStartColor()->setRGB('f8fafc');
-        
-        // Styling untuk setiap tabel dengan warna berbeda
-        $currentRow = 6;
-        $tables = $this->form->tables()->with(['columns' => function($q){ $q->orderBy('urutan'); }, 'entries'])->get();
-        $colors = ['3b82f6', '8b5cf6', '06b6d4', '10b981', 'f59e0b', 'ef4444', '84cc16', 'f97316'];
-        
-        foreach ($tables as $index => $table) {
-            $color = $colors[$index % count($colors)];
-            $lightColor = $this->getLightColor($color);
-            
-            // Nama tabel
-            $sheet->getStyle('A'.$currentRow)->getFont()->setBold(true)->setSize(14);
-            $sheet->getStyle('A'.$currentRow)->getFill()->setFillType('solid')->getStartColor()->setRGB($lightColor);
-            $currentRow += 2;
-            
-            $columns = $table->columns;
-            $colCount = count($columns);
-            $colLetterEnd = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colCount);
-            $entryCount = $table->entries->count();
-            
-            // Header tabel dengan warna yang berbeda
-            $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$currentRow)->getFont()->setBold(true);
-            $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$currentRow)->getFill()->setFillType('solid')->getStartColor()->setRGB($color);
-            $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$currentRow)->getFont()->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFF'));
-            $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$currentRow)->getAlignment()->setHorizontal('center');
-            
-            if ($entryCount > 0) {
-                $dataEnd = $currentRow + $entryCount;
-                $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$dataEnd)->getBorders()->getAllBorders()->setBorderStyle('thin');
-                
-                // Alternating row colors dengan warna yang lebih light
-                for ($i = $currentRow + 1; $i <= $dataEnd; $i++) {
-                    if ($i % 2 == 0) {
-                        $sheet->getStyle('A'.$i.':'.$colLetterEnd.$i)->getFill()->setFillType('solid')->getStartColor()->setRGB($lightColor);
-                    }
-                }
-            } else {
-                $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$currentRow)->getBorders()->getAllBorders()->setBorderStyle('thin');
-            }
-            
-            $currentRow += $entryCount + 2;
-        }
-        
         return [];
     }
     
@@ -171,50 +119,29 @@ class KimiaFormExport implements FromArray, WithStyles, WithTitle, WithColumnWid
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
                 
-                // Header styling
-                $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(18);
+                // Header styling - Judul utama
+                $sheet->mergeCells('A1:E1');
                 $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
                 $sheet->getStyle('A1')->getFill()->setFillType('solid')->getStartColor()->setRGB('dbeafe');
                 
-                // Form info styling
-                $sheet->getStyle('A2:B3')->getFont()->setBold(true);
-                $sheet->getStyle('A2:B3')->getFill()->setFillType('solid')->getStartColor()->setRGB('f8fafc');
-                
-                // Styling untuk setiap tabel dengan warna berbeda
+                // Styling untuk setiap tabel - hanya garis tanpa styling lain
                 $currentRow = 6;
                 $tables = $this->form->tables()->with(['columns' => function($q){ $q->orderBy('urutan'); }, 'entries'])->get();
-                $colors = ['3b82f6', '8b5cf6', '06b6d4', '10b981', 'f59e0b', 'ef4444', '84cc16', 'f97316'];
                 
                 foreach ($tables as $index => $table) {
-                    $color = $colors[$index % count($colors)];
-                    $lightColor = $this->getLightColor($color);
-                    
-                    // Nama tabel
-                    $sheet->getStyle('A'.$currentRow)->getFont()->setBold(true)->setSize(14);
-                    $sheet->getStyle('A'.$currentRow)->getFill()->setFillType('solid')->getStartColor()->setRGB($lightColor);
+                    // Nama tabel tanpa styling
                     $currentRow += 2;
                     
                     $columns = $table->columns;
                     $colCount = count($columns);
                     $colLetterEnd = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colCount);
-                    $entryCount = $table->entries->count();
+                    $entryCount = $table->entries()->count();
                     
-                    // Header tabel dengan warna yang berbeda
-                    $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$currentRow)->getAlignment()->setHorizontal('center');
-                    $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$currentRow)->getFont()->setBold(true);
-                    $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$currentRow)->getFill()->setFillType('solid')->getStartColor()->setRGB($color);
-                    $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$currentRow)->getFont()->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFF'));
+                    // Header tabel tanpa styling
                     
                     if ($entryCount > 0) {
                         $dataEnd = $currentRow + $entryCount;
                         $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$dataEnd)->getBorders()->getAllBorders()->setBorderStyle('thin');
-                        
-                        // Alternating row colors dengan warna yang lebih light
-                        for ($i = $currentRow + 1; $i <= $dataEnd; $i++) {
-                            if ($i % 2 == 0) {
-                                $sheet->getStyle('A'.$i.':'.$colLetterEnd.$i)->getFill()->setFillType('solid')->getStartColor()->setRGB($lightColor);
-                            }
-                        }
                     } else {
                         $sheet->getStyle('A'.$currentRow.':'.$colLetterEnd.$currentRow)->getBorders()->getAllBorders()->setBorderStyle('thin');
                     }
@@ -222,40 +149,13 @@ class KimiaFormExport implements FromArray, WithStyles, WithTitle, WithColumnWid
                     $currentRow += $entryCount + 2;
                 }
                 
-                // Approval section styling
-                $approvalStartRow = $currentRow;
-                $sheet->getStyle('A'.$approvalStartRow)->getFont()->setBold(true)->setSize(14);
-                $sheet->getStyle('A'.$approvalStartRow)->getFill()->setFillType('solid')->getStartColor()->setRGB('d1fae5');
-                
-                $approvalHeaderRow = $approvalStartRow + 1;
-                $sheet->getStyle('A'.$approvalHeaderRow.':E'.$approvalHeaderRow)->getFont()->setBold(true);
-                $sheet->getStyle('A'.$approvalHeaderRow.':E'.$approvalHeaderRow)->getFill()->setFillType('solid')->getStartColor()->setRGB('3b82f6');
-                $sheet->getStyle('A'.$approvalHeaderRow.':E'.$approvalHeaderRow)->getFont()->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFF'));
-                $sheet->getStyle('A'.$approvalHeaderRow.':E'.$approvalHeaderRow)->getAlignment()->setHorizontal('center');
-                
                 // Set row heights
                 $sheet->getRowDimension(1)->setRowHeight(30);
                 $sheet->getRowDimension(5)->setRowHeight(15);
-                $sheet->getRowDimension($approvalStartRow)->setRowHeight(20);
             }
         ];
     }
     
-    private function getLightColor($color)
-    {
-        $lightColors = [
-            '3b82f6' => 'dbeafe', // blue
-            '8b5cf6' => 'e9d5ff', // purple
-            '06b6d4' => 'cffafe', // cyan
-            '10b981' => 'd1fae5', // emerald
-            'f59e0b' => 'fef3c7', // amber
-            'ef4444' => 'fee2e2', // red
-            '84cc16' => 'f7fee7', // lime
-            'f97316' => 'fed7aa', // orange
-        ];
-        
-        return $lightColors[$color] ?? 'f8fafc';
-    }
     
     public function title(): string
     {

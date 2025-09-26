@@ -104,26 +104,12 @@
         .approval-title {
             font-size: 16px;
             font-weight: bold;
-            color: #059669;
             margin-bottom: 15px;
-            padding: 10px;
-            background: #d1fae5;
-            border-radius: 6px;
-            border-left: 4px solid #10b981;
         }
         
         .approval-table th {
             background: #10b981;
             border: 1px solid #059669;
-        }
-        
-        .status-accept {
-            color: #059669;
-            font-weight: bold;
-        }
-        
-        .status-reject {
-            color: #dc2626;
             font-weight: bold;
         }
         
@@ -246,7 +232,7 @@
                             </td>
                             <td>{{ $sig->name }}</td>
                             <td>{{ $sig->jabatan }}</td>
-                            <td class="{{ $sig->status === 'accept' ? 'status-accept' : 'status-reject' }}">
+                            <td>
                                 {{ ucfirst($sig->status) }}
                             </td>
                             <td>{{ \Carbon\Carbon::parse($sig->tanggal)->format('d/m/Y') }}</td>

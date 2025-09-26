@@ -33,8 +33,7 @@
             <div><strong>Tanggal Pengamatan:</strong> {{ $form->tgl_pengamatan }}</div>
         </div>
     </div>
-    {{-- Hapus debug kolom builder dari DB --}}
-    <!-- TABEL DINAMIS START (pastikan di luar form hapus form) -->
+
     <div class="mb-8 fade-slide-up fade-slide-up-delay-2">
         <style>
             .dynamic-card {
@@ -60,10 +59,10 @@
                 border-bottom: 1px solid #e0e0e0;
             }
             .dynamic-table tbody tr:hover {
-                background: #d1fae5 !important; /* emerald-100 */
+                background: #d1fae5 !important;
             }
             .dynamic-btn, .dynamic-btn-green {
-                background: #6ee7b7; /* emerald-300 */
+                background: #6ee7b7;
                 color: #222;
                 border: none;
                 border-radius: 1.2rem;
@@ -76,7 +75,7 @@
                 transition: all .2s;
             }
             .dynamic-btn:hover, .dynamic-btn:focus, .dynamic-btn-green:hover, .dynamic-btn-green:focus {
-                background: #34d399; /* emerald-400 */
+                background: #34d399;
                 color: #222;
             }
             .dynamic-input, .dynamic-select {
@@ -155,7 +154,7 @@
     <!-- FORM INPUT DATA ENTRY (CARD TERPISAH) -->
     <div class="dynamic-card mb-6">
         <h4 class="fw-bold mb-3" style="color:#222;">Input Data Entry</h4>
-        <form id="form-entry" action="{{ route('mikrobiologi-forms.entries.store', ['form' => $form->id]) }}" method="POST" class="d-flex flex-wrap gap-2 align-items-end mb-3">
+        <form id="form-entry" action="{{ route('mikrobiologi-forms.entries.store', ['form' => $form->id]) }}" method="POST" class="d-flex flex-wrap gap-2 align-items-end mb-3" onsubmit="saveScrollPosition('add_entry')">
             @csrf
             <input type="hidden" name="form_id" value="{{ $form->id }}">
             @foreach($columns as $col)
@@ -210,7 +209,7 @@
     </div>
     @endif
     <div class="bg-white shadow rounded-lg p-4 mb-6 mt-8">
-        <h3 class="text-lg font-bold text-success mb-4">Approval / Signature</h3>
+        <h3 class="text-lg mb-4">Approval / Signature</h3>
         <div class="alert alert-warning mb-4 text-center fw-semibold" style="font-size:1.08em;">
             <i class="bi bi-exclamation-triangle me-2"></i>
             <span class="text-danger">Hati-hati saat mengisi <b>Accept</b>, sama dengan tanda tangan dan <u>tidak bisa diulang!!.</u></span>
@@ -232,13 +231,13 @@
                                         <i class="bi bi-capsule fs-1 text-primary"></i>
                                     @endif
                                 </div>
-                                <div class="fw-bold text-success mb-2" style="font-size:1.1em;">{{ $jabatan }}</div>
+                                <div class="mb-2" style="font-size:1.1em;">{{ $jabatan }}</div>
                             </div>
                             @if($sig)
                                 <div class="mb-3 text-center">
-                                    <div class="fw-semibold mb-1">Nama: <span class="text-dark">{{ $sig->name }}</span></div>
-                                    <div class="mb-1">Status: <span class="fw-semibold {{ $sig->status == 'accept' ? 'text-success' : 'text-danger' }}">{{ ucfirst($sig->status) }}</span></div>
-                                    <div class="mb-1">Tanggal: <span class="text-dark">{{ $sig->tanggal }}</span></div>
+                                    <div class="mb-1">Nama: {{ $sig->name }}</div>
+                                    <div class="mb-1">Status: {{ ucfirst($sig->status) }}</div>
+                                    <div class="mb-1">Tanggal: {{ $sig->tanggal }}</div>
                                 </div>
                                 <button class="btn btn-outline-primary w-100" disabled>Sudah Ditandatangani</button>
                             @else
@@ -260,6 +259,7 @@
                                     </div>
                                     <div class="form-floating mb-2">
                                         <select name="status" class="form-select" id="status-{{ $role }}" required onchange="if(this.value==='accept'){document.getElementById('alert-{{ $role }}').style.display='block';}else{document.getElementById('alert-{{ $role }}').style.display='none';}">
+                                            <option value="">Pilih Status</option>
                                             <option value="accept">Accept</option>
                                             <option value="reject">Reject</option>
                                         </select>
@@ -272,7 +272,7 @@
                                         <input type="date" name="tanggal" class="form-control" id="tanggal-{{ $role }}" value="{{ date('Y-m-d') }}" required>
                                         <label for="tanggal-{{ $role }}">Tanggal</label>
                                     </div>
-                                    <button type="submit" class="btn btn-success w-100 fw-bold">Simpan</button>
+                                    <button type="submit" class="btn btn-success w-100">Simpan</button>
                                 </form>
                             @endif
                         </div>
@@ -286,6 +286,63 @@
 
 @push('scripts')
 <script>
+    // Scroll position management for Mikrobiologi
+    function saveScrollPosition(action, entryId = null) {
+        const scrollData = {
+            action: action,
+            entryId: entryId,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('mikrobiologi_scroll_position', JSON.stringify(scrollData));
+    }
+
+    function restoreScrollPosition() {
+        const saved = localStorage.getItem('mikrobiologi_scroll_position');
+        if (!saved) return;
+        
+        const scrollData = JSON.parse(saved);
+        const now = Date.now();
+        
+        // Hanya restore jika dalam 30 detik terakhir
+        if (now - scrollData.timestamp > 30000) {
+            localStorage.removeItem('mikrobiologi_scroll_position');
+            return;
+        }
+        
+        setTimeout(() => {
+            if (scrollData.action === 'add_entry') {
+                // Scroll ke form input data entry
+                const inputForm = document.getElementById('form-entry');
+                if (inputForm) {
+                    // Scroll ke form dengan offset untuk memastikan terlihat
+                    const rect = inputForm.getBoundingClientRect();
+                    const scrollTop = window.pageYOffset + rect.top - 100;
+                    window.scrollTo({ top: scrollTop, behavior: 'smooth' });
+                } else {
+                    // Fallback: scroll ke form entry area
+                    const formArea = document.querySelector('.dynamic-card');
+                    if (formArea) {
+                        formArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            } else if (scrollData.action === 'edit_entry') {
+                // Scroll ke daftar entry
+                const entriesTable = document.querySelector('.dynamic-table');
+                if (entriesTable) {
+                    entriesTable.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+            
+            // Clear saved position after use
+            localStorage.removeItem('mikrobiologi_scroll_position');
+        }, 1000);
+    }
+
+    // Restore scroll position on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        restoreScrollPosition();
+    });
+
 function showNotif(msg, type) {
     let notif = document.getElementById('ajax-notif');
     if (!notif) {
@@ -556,6 +613,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         @endforeach
                         row.querySelector('td:last-child').innerHTML = `<button type='button' class='entry-edit-btn dynamic-btn action-btn-edit' data-id='${id}'>Edit</button><button type='button' class='entry-delete-btn dynamic-btn action-btn-delete' data-id='${id}'>Hapus</button>`;
                         showNotif('Entry berhasil diupdate', 'success');
+                        
+                        // Save scroll position for edit entry
+                        saveScrollPosition('edit_entry', id);
                     } else {
                         showNotif(json.message || 'Gagal update entry', 'danger');
                     }

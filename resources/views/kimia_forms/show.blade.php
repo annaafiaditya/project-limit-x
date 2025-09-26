@@ -38,12 +38,29 @@
         <div class="alert alert-info py-2 mb-3" style="font-size:0.95rem;">
             Petunjuk: Anda bisa membuat lebih dari satu tabel. 1) Klik "Nama Tabel Baru" lalu "Tambah Tabel". 2) Di setiap tabel, tambahkan kolom sesuai kebutuhan. 3) Isi data pada bagian "Input Data Entry" di bawah tabel.
         </div>
-        <ul class="mb-3">
+        <div class="mb-3">
             @foreach($tables as $t)
-                <li class="mb-1">- {{ $t->name }} ({{ $t->columns->count() }} kolom, {{ $t->entries->count() }} baris)</li>
+                <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded" id="table-item-{{ $t->id }}">
+                    <div>
+                        <span class="fw-bold">{{ $t->name }}</span>
+                        <small class="text-muted">({{ $t->columns->count() }} kolom, {{ $t->entries->count() }} baris)</small>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-primary kimia-edit-table" data-id="{{ $t->id }}" data-name="{{ $t->name }}">
+                            <i class="bi bi-pencil-square"></i> Edit
+                        </button>
+                        <form action="{{ route('kimia.tables.destroy', $t) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus tabel {{ $t->name }}? Semua data di dalamnya akan terhapus!')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i> Hapus
+                            </button>
+                        </form>
+                    </div>
+                </div>
             @endforeach
-        </ul>
-        <form action="{{ route('kimia.tables.add', $form) }}" method="POST" class="d-flex gap-2 align-items-end">
+        </div>
+        <form action="{{ route('kimia.tables.add', $form) }}" method="POST" class="d-flex gap-2 align-items-end" onsubmit="saveScrollPosition('add_table')">
             @csrf
             <div>
                 <label class="form-label">Nama Tabel Baru</label>
@@ -93,7 +110,7 @@
                 <span class="badge text-bg-light" style="border:1px solid #e5e7eb;">{{ $table->columns->count() }} kolom • {{ $table->entries->count() }} baris</span>
             </div>
             <div class="mb-3">
-                <form id="form-tambah-kolom-{{ $table->id }}" action="{{ route('kimia-columns.store') }}" method="POST" class="d-flex gap-2 align-items-end mb-3">
+                <form id="form-tambah-kolom-{{ $table->id }}" action="{{ route('kimia-columns.store') }}" method="POST" class="d-flex gap-2 align-items-end mb-3" onsubmit="saveScrollPosition('add_column', {{ $table->id }})">
                     @csrf
                     <input type="hidden" name="form_id" value="{{ $form->id }}">
                     <input type="hidden" name="table_id" value="{{ $table->id }}">
@@ -119,7 +136,7 @@
                     <tbody>
                         @foreach($table->columns as $col)
                         <tr id="kimia-kolom-row-{{ $col->id }}">
-                            <td class="kimia-kolom-nama">{{ $col->nama_kolom }}</td>
+                            <td class="kimia-kolom-nama" data-col-type="{{ $col->tipe_kolom }}">{{ $col->nama_kolom }}</td>
                             <td class="kimia-kolom-tipe">{{ ucfirst($col->tipe_kolom) }}</td>
                             <td>
                                 <div class="d-flex gap-1">
@@ -144,7 +161,7 @@
 
         <div class="dynamic-card mb-6" style="border-left:6px solid {{ $accent }};">
             <h4 class="fw-bold mb-3" style="color:#222;">Input Data Entry</h4>
-            <form action="{{ route('kimia-entries.store') }}" method="POST" class="d-flex flex-wrap gap-2 align-items-end mb-3">
+            <form action="{{ route('kimia-entries.store') }}" method="POST" class="d-flex flex-wrap gap-2 align-items-end mb-3" onsubmit="saveScrollPosition('add_entry', {{ $table->id }})">
                 @csrf
                 <input type="hidden" name="form_id" value="{{ $form->id }}">
                 <input type="hidden" name="table_id" value="{{ $table->id }}">
@@ -187,7 +204,7 @@
                     @foreach($table->entries as $entry)
                     <tr id="kimia-entry-row-{{ $entry->id }}">
                         @foreach($table->columns as $col)
-                            <td class="kimia-entry-col" data-col-id="{{ $col->id }}">
+                            <td class="kimia-entry-col" data-col-id="{{ $col->id }}" data-col-type="{{ $col->tipe_kolom }}">
                                 @if(isset($entry->data[$col->id]))
                                     @if($col->tipe_kolom === 'date')
                                         {{ \Carbon\Carbon::parse($entry->data[$col->id])->format('d/m/Y') }}
@@ -279,6 +296,7 @@
                                     </div>
                                     <div class="form-floating mb-2">
                                         <select name="status" class="form-select" id="status-{{ $role }}" required>
+                                            <option value="">Pilih Status</option>
                                             <option value="accept">Accept</option>
                                             <option value="reject">Reject</option>
                         </select>
@@ -326,8 +344,104 @@
         setTimeout(() => notif.style.display = 'none', 2000);
     }
 
+    // Function to get input type for column
+    function getInputTypeForColumn(colId) {
+        const colElement = document.querySelector(`[data-col-id="${colId}"]`);
+        if (colElement) {
+            const colType = colElement.dataset.colType;
+            switch(colType) {
+                case 'integer':
+                    return { type: 'number', step: false };
+                case 'decimal':
+                    return { type: 'number', step: true };
+                case 'date':
+                    return { type: 'date', step: false };
+                case 'time':
+                    return { type: 'time', step: false };
+                default:
+                    return { type: 'text', step: false };
+            }
+        }
+        return { type: 'text', step: false };
+    }
+
+    // Scroll position management
+    function saveScrollPosition(action, tableId = null, entryId = null) {
+        const scrollData = {
+            action: action,
+            tableId: tableId,
+            entryId: entryId,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('kimia_scroll_position', JSON.stringify(scrollData));
+    }
+
+    function restoreScrollPosition() {
+        const saved = localStorage.getItem('kimia_scroll_position');
+        if (!saved) return;
+        
+        const scrollData = JSON.parse(saved);
+        const now = Date.now();
+        
+        // Hanya restore jika dalam 30 detik terakhir
+        if (now - scrollData.timestamp > 30000) {
+            localStorage.removeItem('kimia_scroll_position');
+            return;
+        }
+        
+        setTimeout(() => {
+            if (scrollData.action === 'add_entry' && scrollData.tableId) {
+                // Scroll ke form input data entry
+                const tableContent = document.getElementById('table-content-' + scrollData.tableId);
+                if (tableContent) {
+                    const inputForm = tableContent.querySelector('form[action*="kimia-entries.store"]');
+                    if (inputForm) {
+                        // Scroll ke form dengan offset untuk memastikan terlihat
+                        const rect = inputForm.getBoundingClientRect();
+                        const scrollTop = window.pageYOffset + rect.top - 100;
+                        window.scrollTo({ top: scrollTop, behavior: 'smooth' });
+                    } else {
+                        // Fallback: scroll ke table content
+                        tableContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            } else if (scrollData.action === 'edit_entry' && scrollData.tableId) {
+                // Scroll ke daftar entry
+                const tableContent = document.getElementById('table-content-' + scrollData.tableId);
+                if (tableContent) {
+                    const entriesTable = tableContent.querySelector('.dynamic-table');
+                    if (entriesTable) {
+                        entriesTable.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            } else if (scrollData.action === 'add_column' && scrollData.tableId) {
+                // Scroll ke form tambah kolom
+                const tableContent = document.getElementById('table-content-' + scrollData.tableId);
+                if (tableContent) {
+                    const columnForm = tableContent.querySelector('form[action*="kimia-columns.store"]');
+                    if (columnForm) {
+                        columnForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            } else if (scrollData.action === 'add_table') {
+                // Scroll ke form tambah tabel
+                const addTableForm = document.querySelector('form[action*="kimia.tables.add"]');
+                if (addTableForm) {
+                    const rect = addTableForm.getBoundingClientRect();
+                    const scrollTop = window.pageYOffset + rect.top - 100;
+                    window.scrollTo({ top: scrollTop, behavior: 'smooth' });
+                }
+            }
+            
+            // Clear saved position after use
+            localStorage.removeItem('kimia_scroll_position');
+        }, 1000);
+    }
+
     // Kimia Column Edit Functionality
     document.addEventListener('DOMContentLoaded', function() {
+        // Restore scroll position on page load
+        restoreScrollPosition();
         // Edit Kimia Columns
         document.addEventListener('click', function(e) {
             const editBtn = e.target.closest('.kimia-edit-col');
@@ -389,15 +503,19 @@
                 const id = editEntryBtn.dataset.id;
                 const row = document.getElementById('kimia-entry-row-' + id);
                 if (!row) return;
+                
                 // Simpan data lama
                 const oldData = [];
                 row.querySelectorAll('.kimia-entry-col').forEach(td => oldData.push(td.innerText));
-                // Ganti ke input
-                @foreach($tables as $table)
-                    @foreach($table->columns as $col)
-                row.querySelector('.kimia-entry-col[data-col-id="{{ $col->id }}"]').innerHTML = `<input type='{{ $col->tipe_kolom === 'integer' ? 'number' : ($col->tipe_kolom === 'decimal' ? 'number' : ($col->tipe_kolom === 'date' ? 'date' : ($col->tipe_kolom === 'time' ? 'time' : 'text'))) }}' class='dynamic-input kimia-entry-edit-input' value='${row.querySelector('.kimia-entry-col[data-col-id="{{ $col->id }}"]').innerText}' data-col-id='{{ $col->id }}' {{ $col->tipe_kolom === 'decimal' ? 'step="0.01"' : '' }}>`;
-                    @endforeach
-                @endforeach
+                
+                // Ganti ke input untuk semua kolom di row ini
+                row.querySelectorAll('.kimia-entry-col').forEach(td => {
+                    const colId = td.dataset.colId;
+                    const currentValue = td.innerText.trim();
+                    const inputType = getInputTypeForColumn(colId);
+                    td.innerHTML = `<input type='${inputType.type}' class='dynamic-input kimia-entry-edit-input' value='${currentValue}' data-col-id='${colId}' ${inputType.step ? 'step="0.01"' : ''}>`;
+                });
+                
                 // Ganti tombol aksi
                 row.querySelector('td:last-child').innerHTML = `<div class="d-flex gap-1"><button type='button' class='kimia-entry-save-btn action-btn action-btn-save' data-id='${id}'><i class="bi bi-check-lg me-1"></i>Simpan</button><button type='button' class='kimia-entry-cancel-btn action-btn action-btn-cancel' data-id='${id}'><i class="bi bi-x-lg me-1"></i>Batal</button></div>`;
             }
@@ -427,14 +545,34 @@
                 })
                 .then(json => {
                     if (json.success || json.updated) {
-                        // Update tampilan baris
-                        @foreach($tables as $table)
-                            @foreach($table->columns as $col)
-                        row.querySelector('.kimia-entry-col[data-col-id="{{ $col->id }}"]').innerText = data['{{ $col->id }}'];
-                            @endforeach
-                        @endforeach
+                        // Update tampilan baris dengan format yang benar
+                        row.querySelectorAll('.kimia-entry-col').forEach(td => {
+                            const colId = td.dataset.colId;
+                            const colType = td.dataset.colType;
+                            const value = data[colId];
+                            
+                            if (value) {
+                                if (colType === 'date') {
+                                    const date = new Date(value);
+                                    td.innerText = date.toLocaleDateString('id-ID');
+                                } else if (colType === 'decimal') {
+                                    td.innerText = parseFloat(value).toFixed(2);
+                                } else {
+                                    td.innerText = value;
+                                }
+                            } else {
+                                td.innerHTML = '<span class="text-gray-400">-</span>';
+                            }
+                        });
+                        
                         row.querySelector('td:last-child').innerHTML = `<div class="d-flex gap-1"><button type='button' class='kimia-entry-edit-btn action-btn action-btn-edit' data-id='${id}'><i class="bi bi-pencil-square me-1"></i>Edit</button><form action="/kimia-entries/${id}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus data ini?')"><input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}"><input type="hidden" name="_method" value="DELETE"><button type="submit" class="action-btn action-btn-delete"><i class="bi bi-trash me-1"></i>Hapus</button></form></div>`;
                         showNotif('Entry berhasil diupdate', 'success');
+                        
+                        // Save scroll position for edit entry
+                        const tableId = row.closest('[id^="table-content-"]')?.id?.replace('table-content-', '');
+                        if (tableId) {
+                            saveScrollPosition('edit_entry', tableId, id);
+                        }
                     } else {
                         showNotif(json.message || 'Gagal update entry', 'danger');
                     }
@@ -448,6 +586,84 @@
             // Cancel Kimia Entry
             const cancelEntryBtn = e.target.closest('.kimia-entry-cancel-btn');
             if (cancelEntryBtn) {
+                location.reload();
+            }
+
+            // Edit Kimia Table
+            const editTableBtn = e.target.closest('.kimia-edit-table');
+            if (editTableBtn) {
+                const id = editTableBtn.dataset.id;
+                const currentName = editTableBtn.dataset.name;
+                const tableItem = document.getElementById('table-item-' + id);
+                const nameSpan = tableItem.querySelector('span.fw-bold');
+                
+                // Ganti dengan input
+                nameSpan.innerHTML = `<input type="text" class="form-control form-control-sm d-inline-block" value="${currentName}" id="edit-table-name-${id}" style="width: 200px;">`;
+                
+                // Ganti tombol
+                const buttonGroup = tableItem.querySelector('.d-flex.gap-1');
+                buttonGroup.innerHTML = `
+                    <button type="button" class="btn btn-sm btn-success kimia-save-table" data-id="${id}">
+                        <i class="bi bi-check-lg"></i> Simpan
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary kimia-cancel-table" data-id="${id}">
+                        <i class="bi bi-x-lg"></i> Batal
+                    </button>
+                `;
+            }
+
+            // Save Kimia Table
+            const saveTableBtn = e.target.closest('.kimia-save-table');
+            if (saveTableBtn) {
+                const id = saveTableBtn.dataset.id;
+                const newName = document.getElementById('edit-table-name-' + id).value;
+                
+                if (!newName.trim()) {
+                    showNotif('Nama tabel tidak boleh kosong', 'danger');
+                    return;
+                }
+                
+                fetch(`/kimia-tables/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name: newName }),
+                    credentials: 'same-origin',
+                })
+                .then(res => res.json().then(json => ({ok: res.ok, json})))
+                .then(({ok, json}) => {
+                    if (ok) {
+                        const tableItem = document.getElementById('table-item-' + id);
+                        const nameSpan = tableItem.querySelector('span.fw-bold');
+                        nameSpan.innerHTML = json.name;
+                        
+                        const buttonGroup = tableItem.querySelector('.d-flex.gap-1');
+                        buttonGroup.innerHTML = `
+                            <button type="button" class="btn btn-sm btn-outline-primary kimia-edit-table" data-id="${id}" data-name="${json.name}">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </button>
+                            <form action="/kimia-tables/${id}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus tabel ${json.name}? Semua data di dalamnya akan terhapus!')">
+                                <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i> Hapus
+                                </button>
+                            </form>
+                        `;
+                        showNotif('Nama tabel berhasil diupdate', 'success');
+                    } else {
+                        showNotif(json.message || 'Gagal update tabel', 'danger');
+                    }
+                })
+                .catch(err => showNotif(err.message, 'danger'));
+            }
+
+            // Cancel Kimia Table
+            const cancelTableBtn = e.target.closest('.kimia-cancel-table');
+            if (cancelTableBtn) {
                 location.reload();
             }
         });

@@ -162,8 +162,6 @@ document.addEventListener('DOMContentLoaded', function() {
         errorMsg = `Tidak bisa export: Data form tidak lengkap.<br><b>Judul:</b> ${judul} <b>No Form:</b> ${noForm}`;
       } else if (parseInt(entryCount) === 0) {
         errorMsg = `Tidak bisa export: Data entry kosong!<br><b>Judul:</b> ${judul} <b>No Form:</b> ${noForm}`;
-      } else if (parseInt(approvalCount) < 3) {
-        errorMsg = `Tidak bisa export: Approval kurang dari 3!<br><b>Judul:</b> ${judul} <b>No Form:</b> ${noForm}`;
       }
       if (errorMsg) {
         // Tampilkan alert di web

@@ -30,9 +30,15 @@ class FormExport implements FromArray, WithStyles, WithTitle, WithColumnWidths, 
             [''],
         ];
         
+        // Tambahkan judul tabel jika ada
+        if ($this->form->judul_tabel) {
+            $header[] = [$this->form->judul_tabel];
+            $header[] = [''];
+        }
+        
         $columns = $this->form->columns()->orderBy('urutan')->get();
-        $entries = $this->form->entries;
-        $approval = $this->form->signatures;
+        $entries = $this->form->entries()->orderBy('id')->get();
+        $approval = $this->form->signatures()->get();
         
         $tableHeader = $columns->map(fn($col) => $col->nama_kolom)->toArray();
         $tableRows = [];
@@ -49,6 +55,8 @@ class FormExport implements FromArray, WithStyles, WithTitle, WithColumnWidths, 
                     $value = $value;
                 } elseif ($col->tipe_kolom === 'integer' && is_numeric($value)) {
                     $value = number_format($value);
+                } elseif ($col->tipe_kolom === 'decimal' && is_numeric($value)) {
+                    $value = number_format($value, 2);
                 }
                 
                 $row[] = $value;
@@ -84,46 +92,6 @@ class FormExport implements FromArray, WithStyles, WithTitle, WithColumnWidths, 
     
     public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet)
     {
-        // Judul besar dan merge cell
-        $sheet->mergeCells('A1:E1');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(18);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
-        $sheet->getStyle('A1')->getFill()->setFillType('solid')->getStartColor()->setRGB('dbeafe');
-        
-        // Info form
-        $sheet->getStyle('A2:B4')->getFont()->setBold(true);
-        $sheet->getStyle('A2:B4')->getFill()->setFillType('solid')->getStartColor()->setRGB('f8fafc');
-        
-        // Hitung posisi baris header dan data entry
-        $headerRow = 6;
-        $columns = $this->form->columns()->orderBy('urutan')->get();
-        $colCount = count($columns);
-        $colLetterEnd = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colCount);
-        $entryCount = $this->form->entries->count();
-        $dataStart = $headerRow + 1;
-        $dataEnd = $headerRow + $entryCount;
-        
-        // Styling untuk header tabel
-        $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$headerRow)->getFont()->setBold(true);
-        $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$headerRow)->getFill()->setFillType('solid')->getStartColor()->setRGB('10b981');
-        $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$headerRow)->getFont()->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFF'));
-        $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$headerRow)->getAlignment()->setHorizontal('center');
-        
-        if ($entryCount > 0) {
-            $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$dataEnd)->getBorders()->getAllBorders()->setBorderStyle('thin');
-            // Alternating row colors
-            for ($i = $dataStart; $i <= $dataEnd; $i++) {
-                if ($i % 2 == 0) {
-                    $sheet->getStyle('A'.$i.':'.$colLetterEnd.$i)->getFill()->setFillType('solid')->getStartColor()->setRGB('f0fdf4');
-                }
-            }
-        } else {
-            $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$headerRow)->getBorders()->getAllBorders()->setBorderStyle('thin');
-        }
-        
-        // Spasi antar section
-        $sheet->getRowDimension(5)->setRowHeight(15);
-        
         return [];
     }
     
@@ -147,7 +115,8 @@ class FormExport implements FromArray, WithStyles, WithTitle, WithColumnWidths, 
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
                 
-                // Header styling
+                // Header styling - Judul utama
+                $sheet->mergeCells('A1:E1');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(18);
                 $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
                 $sheet->getStyle('A1')->getFill()->setFillType('solid')->getStartColor()->setRGB('dbeafe');
@@ -156,48 +125,42 @@ class FormExport implements FromArray, WithStyles, WithTitle, WithColumnWidths, 
                 $sheet->getStyle('A2:B4')->getFont()->setBold(true);
                 $sheet->getStyle('A2:B4')->getFill()->setFillType('solid')->getStartColor()->setRGB('f8fafc');
                 
-                // Table styling
+                // Hitung posisi yang tepat untuk styling
                 $columns = $this->form->columns()->orderBy('urutan')->get();
                 $colCount = count($columns);
                 $colLetterEnd = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colCount);
+                $entryCount = $this->form->entries()->count();
+                
+                // Tentukan baris header tabel
                 $headerRow = 6;
-                $entryCount = $this->form->entries->count();
+                if ($this->form->judul_tabel) {
+                    $headerRow = 8; // Jika ada judul tabel, header ada di baris 8
+                }
+                
                 $dataStart = $headerRow + 1;
                 $dataEnd = $headerRow + $entryCount;
                 
-                // Header table
+                // Header table styling
                 $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$headerRow)->getAlignment()->setHorizontal('center');
                 $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$headerRow)->getFont()->setBold(true);
-                $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$headerRow)->getFill()->setFillType('solid')->getStartColor()->setRGB('10b981');
+                $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$headerRow)->getFill()->setFillType('solid')->getStartColor()->setRGB('3b82f6');
                 $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$headerRow)->getFont()->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFF'));
                 
                 if ($entryCount > 0) {
                     $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$dataEnd)->getBorders()->getAllBorders()->setBorderStyle('thin');
                     // Alternating row colors
                     for ($i = $dataStart; $i <= $dataEnd; $i++) {
-                        if ($i % 2 == 0) {
-                            $sheet->getStyle('A'.$i.':'.$colLetterEnd.$i)->getFill()->setFillType('solid')->getStartColor()->setRGB('f0fdf4');
+                        if (($i - $dataStart) % 2 == 0) {
+                            $sheet->getStyle('A'.$i.':'.$colLetterEnd.$i)->getFill()->setFillType('solid')->getStartColor()->setRGB('f0f9ff');
                         }
                     }
                 } else {
                     $sheet->getStyle('A'.$headerRow.':'.$colLetterEnd.$headerRow)->getBorders()->getAllBorders()->setBorderStyle('thin');
                 }
                 
-                // Approval section styling
-                $approvalStartRow = $headerRow + $entryCount + 3;
-                $sheet->getStyle('A'.$approvalStartRow)->getFont()->setBold(true)->setSize(14);
-                $sheet->getStyle('A'.$approvalStartRow)->getFill()->setFillType('solid')->getStartColor()->setRGB('d1fae5');
-                
-                $approvalHeaderRow = $approvalStartRow + 1;
-                $sheet->getStyle('A'.$approvalHeaderRow.':E'.$approvalHeaderRow)->getFont()->setBold(true);
-                $sheet->getStyle('A'.$approvalHeaderRow.':E'.$approvalHeaderRow)->getFill()->setFillType('solid')->getStartColor()->setRGB('10b981');
-                $sheet->getStyle('A'.$approvalHeaderRow.':E'.$approvalHeaderRow)->getFont()->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFF'));
-                $sheet->getStyle('A'.$approvalHeaderRow.':E'.$approvalHeaderRow)->getAlignment()->setHorizontal('center');
-                
                 // Set row heights
                 $sheet->getRowDimension(1)->setRowHeight(30);
                 $sheet->getRowDimension(5)->setRowHeight(15);
-                $sheet->getRowDimension($approvalStartRow)->setRowHeight(20);
             }
         ];
     }
