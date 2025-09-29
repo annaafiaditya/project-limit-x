@@ -243,7 +243,11 @@ class KimiaController extends Controller
             'data' => 'required|array',
         ]);
         
-        KimiaEntry::create($validated);
+        $entry = KimiaEntry::create($validated);
+        
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($entry);
+        }
         
         return back()->with('success', 'Data entry berhasil ditambah!');
     }
