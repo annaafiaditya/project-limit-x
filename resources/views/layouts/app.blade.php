@@ -15,8 +15,45 @@
         <!-- Bootstrap 5.3.2 CDN -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+        <!-- CSRF Token Setup -->
+        <script>
+            window.Laravel = {
+                csrfToken: '{{ csrf_token() }}'
+            };
+            
+            // Setup CSRF token for all AJAX requests
+            $(document).ready(function() {
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                
+                // Handle 419 errors globally
+                $(document).ajaxError(function(event, xhr, settings, thrownError) {
+                    if (xhr.status === 419) {
+                        alert('Session expired. Please refresh the page and try again.');
+                        window.location.reload();
+                    }
+                });
+                
+                // Refresh CSRF token periodically
+                setInterval(function() {
+                    $.get('/refresh-csrf').done(function(data) {
+                        $('meta[name="csrf-token"]').attr('content', data.csrf_token);
+                        $('input[name="_token"]').val(data.csrf_token);
+                    }).fail(function() {
+                        // If refresh fails, reload the page
+                        window.location.reload();
+                    });
+                }, 300000); // Refresh every 5 minutes
+            });
+        </script>
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">

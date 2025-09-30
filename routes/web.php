@@ -17,6 +17,11 @@ Route::get('/', function () {
     return view('home');
 });
 
+// CSRF token refresh route
+Route::get('/refresh-csrf', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+});
+
 // Pastikan hanya ada satu route manual untuk hapus kolom
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
@@ -34,9 +39,11 @@ Route::middleware(['auth'])->group(function () {
             return \App\Models\MikrobiologiEntry::count();
         });
         $approvalPending = Cache::remember('dash_mikro_approval_pending', 60, function () {
-            return \App\Models\MikrobiologiForm::withCount(['signatures as accept_count' => function($q){
+            return \App\Models\MikrobiologiForm::whereDoesntHave('signatures', function($q){
                 $q->where('status', 'accept');
-            }])->where('accept_count', '<', 3)->count();
+            })->orWhereHas('signatures', function($q){
+                $q->where('status', 'accept');
+            }, '<', 3)->count();
         });
 
         // Kimia stats
@@ -50,9 +57,11 @@ Route::middleware(['auth'])->group(function () {
             return \App\Models\KimiaEntry::count();
         });
         $kimiaApprovalPending = Cache::remember('dash_kimia_approval_pending', 60, function () {
-            return \App\Models\KimiaForm::withCount(['signatures as accept_count' => function($q){
+            return \App\Models\KimiaForm::whereDoesntHave('signatures', function($q){
                 $q->where('status', 'accept');
-            }])->where('accept_count', '<', 3)->count();
+            })->orWhereHas('signatures', function($q){
+                $q->where('status', 'accept');
+            }, '<', 3)->count();
         });
 
         return response()->json([
@@ -134,8 +143,39 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-    // Kimia Routes
-    Route::get('/kimia', [App\Http\Controllers\KimiaController::class, 'index'])->name('kimia.index');
+    // Kimia Routes - with approval filter
+    Route::get('/kimia', function (Illuminate\Http\Request $request) {
+        $search = $request->input('search');
+        $search_tgl = $request->input('search_tgl');
+        $group_title = $request->input('group_title');
+        $perPage = $request->input('perPage', 10);
+        $query = \App\Models\KimiaForm::query();
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                  ->orWhere('no', 'like', "%$search%")
+                  ->orWhere('tanggal', 'like', "%$search%");
+            });
+        }
+        if ($search_tgl) {
+            $query->whereDate('tanggal', $search_tgl);
+        }
+        if ($group_title) {
+            $query->where('title', $group_title);
+        }
+        // Tambahkan filter approval
+        if ($request->input('approval') === 'pending') {
+            $query->whereDoesntHave('signatures', function($q){
+                $q->where('status', 'accept');
+            })->orWhereHas('signatures', function($q){
+                $q->where('status', 'accept');
+            }, '<', 3);
+        }
+        $forms = $query->orderBy('created_at', 'desc')->paginate($perPage)->appends($request->except('page'));
+        $titles = \App\Models\KimiaForm::select('title')->distinct()->orderBy('title')->pluck('title');
+        $template_titles = $titles;
+        return view('kimia_forms.index', compact('forms', 'search', 'search_tgl', 'group_title', 'titles', 'perPage', 'template_titles'));
+    })->name('kimia.index');
     Route::get('/kimia/create', [App\Http\Controllers\KimiaController::class, 'create'])->name('kimia.create');
     Route::post('/kimia', [App\Http\Controllers\KimiaController::class, 'store'])->name('kimia.store');
     Route::get('/kimia/{kimia_form}', [App\Http\Controllers\KimiaController::class, 'show'])->whereNumber('kimia_form')->name('kimia.show');

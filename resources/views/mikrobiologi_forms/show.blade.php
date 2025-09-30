@@ -42,12 +42,15 @@
                 box-shadow: 0 4px 24px #0002;
                 padding: 2rem 1.5rem;
                 margin-bottom: 2.5rem;
+                overflow-x: auto;
             }
+            .dynamic-table { width: 100%; table-layout: fixed; }
             .dynamic-table th, .dynamic-table td {
                 background: transparent !important;
                 color: #222;
                 vertical-align: middle;
                 padding: 0.7rem 1rem;
+                word-break: break-word;
             }
             .dynamic-table th {
                 font-weight: 700;
@@ -86,6 +89,8 @@
                 padding: 0.4rem 0.8rem;
                 margin-bottom: 0.2rem;
             }
+            .dynamic-table input.dynamic-input, .dynamic-table select.dynamic-select { max-width: 100%; width: 100%; }
+            .dynamic-table .action-btn { white-space: nowrap; }
             .action-btn {
                 border-radius: 0.7rem;
                 padding: 0.3rem 0.7rem;
@@ -387,6 +392,46 @@ if (formKolom) {
         .catch(err => showNotif(err.message, 'danger'));
         return false;
     }
+}
+// Intercept add entry to stay on page
+const formEntry = document.getElementById('form-entry');
+if (formEntry) {
+    formEntry.addEventListener('submit', function(e){
+        e.preventDefault();
+        const data = new FormData(formEntry);
+        fetch(formEntry.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: data,
+            credentials: 'same-origin',
+        })
+        .then(res => res.json().then(json => ({ok: res.ok, json})).catch(() => ({ok:false})))
+        .then(({ok, json}) => {
+            if (!ok || !json || !json.id) { formEntry.removeEventListener('submit', arguments.callee); formEntry.submit(); return; }
+            const tbody = document.getElementById('entry-tbody');
+            if (!tbody) { showNotif('Entry tersimpan. Muat ulang untuk melihat.', 'success'); formEntry.reset(); return; }
+            const tr = document.createElement('tr');
+            tr.id = 'entry-row-' + json.id;
+            @foreach($columns as $col)
+            tr.innerHTML += `<td class="entry-col" data-col-id="{{ $col->id }}">${formEntry.querySelector('[name="data[{{ $col->id }}]"]')?.value || ''}</td>`;
+            @endforeach
+            tr.innerHTML += `<td><button type='button' class='entry-edit-btn dynamic-btn action-btn-edit' data-id='${json.id}'>Edit</button><button type='button' class='entry-delete-btn dynamic-btn action-btn-delete' data-id='${json.id}'>Hapus</button></td>`;
+            tbody.appendChild(tr);
+            showNotif('Entry berhasil ditambah', 'success');
+            formEntry.reset();
+            // Keep view at the form and focus the first input
+            const rect = formEntry.getBoundingClientRect();
+            const top = window.pageYOffset + rect.top - 100;
+            window.scrollTo({ top: top, behavior: 'smooth' });
+            const firstInput = formEntry.querySelector('input, select, textarea');
+            if (firstInput) firstInput.focus();
+        })
+        .catch(() => { formEntry.removeEventListener('submit', arguments.callee); formEntry.submit(); });
+    });
 }
 function addKolomRow(col) {
     const tbody = document.getElementById('kolom-tbody');

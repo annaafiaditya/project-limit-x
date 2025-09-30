@@ -6,16 +6,23 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     fetch("{{ route('dashboard.data') }}")
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return res.json();
+        })
         .then(data => {
+            console.log('Dashboard data received:', data);
+            
             // Donut chart judul form
             const ctx = document.getElementById('judulDonutChart').getContext('2d');
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: data.judul_labels,
+                    labels: data.judul_labels || [],
                     datasets: [{
-                        data: data.judul_data,
+                        data: data.judul_data || [],
                         backgroundColor: [
                             '#b9e4c9', '#b5d8f8', '#ffe6a7', '#f9c6c9', '#d6c8f5', '#b8e8f4', '#f7c6e0', '#fff3b0', '#c7f9cc', '#ffd6d6'
                         ],
@@ -32,11 +39,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             // Entry count
-            document.getElementById('entryCount').textContent = data.entry_count;
+            document.getElementById('entryCount').textContent = data.entry_count || 0;
 
             // Approval pending
             const approvalBtn = document.getElementById('approvalPendingBtn');
-            approvalBtn.textContent = data.approval_pending;
+            approvalBtn.textContent = data.approval_pending || 0;
             approvalBtn.onclick = function() {
                 window.location.href = "{{ route('mikrobiologi-forms.index') }}?approval=pending";
             };
@@ -47,9 +54,9 @@ document.addEventListener('DOMContentLoaded', function() {
             new Chart(ctxKimia, {
                 type: 'doughnut',
                 data: {
-                    labels: data.kimia_judul_labels,
+                    labels: data.kimia_judul_labels || [],
                     datasets: [{
-                        data: data.kimia_judul_data,
+                        data: data.kimia_judul_data || [],
                         backgroundColor: [
                             '#b5d8f8', '#b9e4c9', '#ffe6a7', '#f9c6c9', '#d6c8f5', '#b8e8f4', '#f7c6e0', '#fff3b0', '#c7f9cc', '#ffd6d6'
                         ],
@@ -64,14 +71,22 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             // Entry count Kimia
-            document.getElementById('kimiaEntryCount').textContent = data.kimia_entry_count;
+            document.getElementById('kimiaEntryCount').textContent = data.kimia_entry_count || 0;
 
             // Approval pending Kimia
             const approvalKimiaBtn = document.getElementById('kimiaApprovalPendingBtn');
-            approvalKimiaBtn.textContent = data.kimia_approval_pending;
+            approvalKimiaBtn.textContent = data.kimia_approval_pending || 0;
             approvalKimiaBtn.onclick = function() {
                 window.location.href = "{{ route('kimia.index') }}?approval=pending";
             };
+        })
+        .catch(error => {
+            console.error('Error fetching dashboard data:', error);
+            // Set default values if fetch fails
+            document.getElementById('entryCount').textContent = '0';
+            document.getElementById('approvalPendingBtn').textContent = '0';
+            document.getElementById('kimiaEntryCount').textContent = '0';
+            document.getElementById('kimiaApprovalPendingBtn').textContent = '0';
         });
 });
 </script>

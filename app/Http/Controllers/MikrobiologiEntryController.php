@@ -32,7 +32,10 @@ class MikrobiologiEntryController extends Controller
             'form_id' => 'required|exists:mikrobiologi_forms,id',
             'data' => 'required|array',
         ]);
-        MikrobiologiEntry::create($validated);
+        $entry = MikrobiologiEntry::create($validated);
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($entry);
+        }
         return redirect()->route('mikrobiologi-forms.show', ['mikrobiologi_form' => $request->form_id])->with('success', 'Data entry berhasil ditambah!');
     }
 

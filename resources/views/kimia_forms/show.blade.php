@@ -86,14 +86,17 @@
         </div>
         <div id="table-content-{{ $table->id }}">
         <style>
-            .dynamic-card { background: #f7f7fa; border-radius: 1.2rem; box-shadow: 0 4px 24px #0002; padding: 2rem 1.5rem; margin-bottom: 2.5rem; }
-            .dynamic-table th, .dynamic-table td { background: transparent !important; color: #222; vertical-align: middle; padding: 0.7rem 1rem; }
+            .dynamic-card { background: #f7f7fa; border-radius: 1.2rem; box-shadow: 0 4px 24px #0002; padding: 2rem 1.5rem; margin-bottom: 2.5rem; overflow-x: auto; }
+            .dynamic-table { width: 100%; table-layout: fixed; }
+            .dynamic-table th, .dynamic-table td { background: transparent !important; color: #222; vertical-align: middle; padding: 0.7rem 1rem; word-break: break-word; }
             .dynamic-table th { font-weight: 700; font-size: 1.08rem; border-bottom: 2px solid #e0e0e0; background: #f1f1f7 !important; }
             .dynamic-table td { border-bottom: 1px solid #e0e0e0; }
             .dynamic-table tbody tr:hover { background: #dbeafe !important; }
             .dynamic-btn { background: #93c5fd; color: #222; border: none; border-radius: 1.2rem; font-weight: 600; font-size: 1rem; letter-spacing: 1px; box-shadow: 0 2px 8px #0002; padding: 0.5rem 1.2rem; margin: 0 0.2rem; transition: all .2s; }
             .dynamic-btn:hover, .dynamic-btn:focus { background: #60a5fa; color: #222; }
             .dynamic-input, .dynamic-select { background: #fff; color: #222; border: 1px solid #bbb; border-radius: 0.7rem; padding: 0.4rem 0.8rem; margin-bottom: 0.2rem; }
+            .dynamic-table input.dynamic-input, .dynamic-table select.dynamic-select { max-width: 100%; width: 100%; }
+            .dynamic-table .action-btn { white-space: nowrap; }
             .action-btn { border-radius: 0.7rem; padding: 0.4rem 0.8rem; font-size: 0.9em; margin-right: 0.3rem; display: inline-flex; align-items: center; gap: 0.3em; font-weight: 500; transition: all 0.2s ease; border: none; cursor: pointer; }
             .action-btn-edit { background: #3b82f6; color: #fff; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3); } 
             .action-btn-edit:hover { background: #2563eb; color: #fff; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4); }
@@ -442,6 +445,128 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Restore scroll position on page load
         restoreScrollPosition();
+
+        // Intercept Add Column (AJAX, keep page position)
+        document.querySelectorAll('form[action*="/kimia-columns"]').forEach(function(form){
+            form.addEventListener('submit', function(e){
+                e.preventDefault();
+                const formEl = e.currentTarget;
+                const data = new FormData(formEl);
+                fetch(formEl.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: data,
+                    credentials: 'same-origin',
+                })
+                .then(res => res.json().then(json => ({ ok: res.ok, json })).catch(() => ({ ok: false })))
+                .then(({ ok, json }) => {
+                    if (!ok || !json || !json.id) {
+                        formEl.removeEventListener('submit', arguments.callee);
+                        formEl.submit();
+                        return;
+                    }
+                    const tableContent = formEl.closest('[id^="table-content-"]');
+                    const tbody = tableContent?.querySelector('.dynamic-table tbody');
+                    if (tbody) {
+                        const newRow = document.createElement('tr');
+                        newRow.id = 'kimia-kolom-row-' + json.id;
+                        newRow.innerHTML = `
+                            <td class="kimia-kolom-nama" data-col-type="${json.tipe_kolom}">${json.nama_kolom}</td>
+                            <td class="kimia-kolom-tipe">${json.tipe_kolom.charAt(0).toUpperCase()+json.tipe_kolom.slice(1)}</td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="action-btn action-btn-edit kimia-edit-col" data-id="${json.id}"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                                    <form action="/kimia-columns/${json.id}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus kolom ini?')">
+                                        <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button type="submit" class="action-btn action-btn-delete"><i class="bi bi-trash me-1"></i>Hapus</button>
+                                    </form>
+                                </div>
+                            </td>`;
+                        tbody.appendChild(newRow);
+                    }
+                    // add input to entry form
+                    const entryForm = tableContent?.querySelector('form[action*="/kimia-entries"]');
+                    if (entryForm) {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'mb-2 me-2';
+                        const type = json.tipe_kolom === 'integer' ? 'number' : (json.tipe_kolom === 'decimal' ? 'number' : (json.tipe_kolom === 'date' ? 'date' : (json.tipe_kolom === 'time' ? 'time' : 'text')));
+                        const step = json.tipe_kolom === 'decimal' ? ' step="0.01"' : '';
+                        wrapper.innerHTML = `<label class="block text-blue-900 font-semibold mb-1" style="font-size:0.97em;">${json.nama_kolom}</label><input type="${type}" name="data[${json.id}]" class="dynamic-input ${type==='text'?'w-44':'w-32'}" required placeholder="${json.nama_kolom}"${step}>`;
+                        const submitBtn = entryForm.querySelector('button[type="submit"]');
+                        entryForm.insertBefore(wrapper, submitBtn);
+                    }
+                    showNotif('Kolom berhasil ditambah', 'success');
+                    formEl.reset();
+                    // Keep view on add-column form and focus first input
+                    const rectCol = formEl.getBoundingClientRect();
+                    const topCol = window.pageYOffset + rectCol.top - 100;
+                    window.scrollTo({ top: topCol, behavior: 'smooth' });
+                    const firstColInput = formEl.querySelector('input[name="nama_kolom"], input, select');
+                    if (firstColInput) firstColInput.focus();
+                })
+                .catch(() => { formEl.removeEventListener('submit', arguments.callee); formEl.submit(); });
+            });
+        });
+
+        // Intercept Add Entry (AJAX, keep page position)
+        document.querySelectorAll('form[action*="/kimia-entries"]').forEach(function(form){
+            form.addEventListener('submit', function(e){
+                e.preventDefault();
+                const formEl = e.currentTarget;
+                const data = new FormData(formEl);
+                fetch(formEl.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: data,
+                    credentials: 'same-origin',
+                })
+                .then(res => res.json().then(json => ({ ok: res.ok, json })).catch(() => ({ ok: false })))
+                .then(({ ok, json }) => {
+                    if (!ok || !json || !json.id) { formEl.removeEventListener('submit', arguments.callee); formEl.submit(); return; }
+                    const tableContent = formEl.closest('[id^="table-content-"]');
+                    const listCard = tableContent?.querySelectorAll('.dynamic-card.mb-6')[1] || tableContent?.querySelector('.dynamic-card.mb-6');
+                    const entriesTable = listCard ? listCard.querySelector('table.dynamic-table') : null;
+                    const tbody = entriesTable ? entriesTable.querySelector('tbody') : null;
+                    if (!tbody) { showNotif('Data tersimpan. Muat ulang untuk melihat.', 'success'); formEl.reset(); return; }
+                    const tr = document.createElement('tr');
+                    tr.id = 'kimia-entry-row-' + json.id;
+                    const ths = entriesTable.querySelectorAll('thead th');
+                    for (let i = 0; i < ths.length - 1; i++) {
+                        const label = ths[i].textContent.trim();
+                        let input = Array.from(formEl.querySelectorAll('.dynamic-input')).find(inp => inp.closest('div')?.querySelector('label')?.textContent?.trim() === label);
+                        if (!input) input = formEl.querySelectorAll('.dynamic-input')[i];
+                        const td = document.createElement('td');
+                        td.className = 'kimia-entry-col';
+                        td.setAttribute('data-col-id', input?.name?.match(/data\[(\d+)\]/)?.[1] || '');
+                        td.setAttribute('data-col-type', input?.type || 'text');
+                        td.textContent = input ? input.value : '';
+                        tr.appendChild(td);
+                    }
+                    const actionTd = document.createElement('td');
+                    actionTd.innerHTML = `<div class="d-flex gap-1"><button type='button' class='kimia-entry-edit-btn action-btn action-btn-edit' data-id='${json.id}'><i class="bi bi-pencil-square me-1"></i>Edit</button><form action="/kimia-entries/${json.id}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus data ini?')"><input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}"><input type="hidden" name="_method" value="DELETE"><button type="submit" class="action-btn action-btn-delete"><i class="bi bi-trash me-1"></i>Hapus</button></form></div>`;
+                    tr.appendChild(actionTd);
+                    tbody.appendChild(tr);
+                    showNotif('Entry berhasil ditambah', 'success');
+                    formEl.reset();
+                    // Keep view on add-entry form and focus first input
+                    const rectEntry = formEl.getBoundingClientRect();
+                    const topEntry = window.pageYOffset + rectEntry.top - 100;
+                    window.scrollTo({ top: topEntry, behavior: 'smooth' });
+                    const firstEntryInput = formEl.querySelector('input, select, textarea');
+                    if (firstEntryInput) firstEntryInput.focus();
+                })
+                .catch(() => { formEl.removeEventListener('submit', arguments.callee); formEl.submit(); });
+            });
+        });
         // Edit Kimia Columns
         document.addEventListener('click', function(e) {
             const editBtn = e.target.closest('.kimia-edit-col');
