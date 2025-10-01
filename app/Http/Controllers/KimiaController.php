@@ -362,7 +362,31 @@ class KimiaController extends Controller
             return back()->with('export_error', 'Tidak ada data sesuai filter untuk diexport.');
         }
 
-        $filename = 'Kimia_All_'.now()->format('Ymd_His').'.xlsx';
+        // Generate filename based on applied filters
+        $filenameParts = ['Kimia'];
+        
+        if ($request->filled('search')) {
+            $search = preg_replace('/[^A-Za-z0-9_\-]/', '_', $request->input('search'));
+            $filenameParts[] = 'Search_' . substr($search, 0, 20);
+        }
+        
+        if ($request->filled('search_tgl')) {
+            $search_tgl = preg_replace('/[^A-Za-z0-9_\-]/', '_', $request->input('search_tgl'));
+            $filenameParts[] = 'Tanggal_' . $search_tgl;
+        }
+        
+        if ($request->filled('group_title')) {
+            $group_title = preg_replace('/[^A-Za-z0-9_\-]/', '_', $request->input('group_title'));
+            $filenameParts[] = 'Judul_' . substr($group_title, 0, 20);
+        }
+        
+        if ($request->input('approval') === 'pending') {
+            $filenameParts[] = 'Pending_Approval';
+        }
+        
+        $filenameParts[] = now()->format('Ymd_His');
+        $filename = implode('_', $filenameParts) . '.xlsx';
+        
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\KimiaCombinedExport($ids), $filename);
     }
 

@@ -1,6 +1,32 @@
 @extends('layouts.app')
 
 @section('content')
+
+<!-- Animated Background -->
+<div class="animated-background">
+    <div class="floating-circles">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+        <div class="circle circle-3"></div>
+        <div class="circle circle-4"></div>
+        <div class="circle circle-5"></div>
+        <div class="circle circle-6"></div>
+        <div class="circle circle-7"></div>
+        <div class="circle circle-8"></div>
+        <div class="circle circle-9"></div>
+        <div class="circle circle-10"></div>
+        <div class="circle circle-11"></div>
+        <div class="circle circle-12"></div>
+        <div class="circle circle-13"></div>
+        <div class="circle circle-14"></div>
+        <div class="circle circle-15"></div>
+        <div class="circle circle-16"></div>
+        <div class="circle circle-17"></div>
+        <div class="circle circle-18"></div>
+        <div class="circle circle-19"></div>
+        <div class="circle circle-20"></div>
+    </div>
+</div>
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -275,5 +301,272 @@ document.addEventListener('DOMContentLoaded', function() {
 .hero-dashboard-card:hover .hero-lab-icon {
     transform: scale(1.06) rotate(-3deg);
     box-shadow:0 8px 32px #34d39933;
+}
+
+/* Animated Background Styles */
+.animated-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+}
+
+.floating-circles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: gentleFloat 30s infinite ease-in-out;
+}
+
+.circle-1 {
+    width: 120px;
+    height: 120px;
+    top: 5%;
+    left: 10%;
+    background: radial-gradient(circle, #34d399, #10b981);
+    animation-delay: 0s;
+    animation-duration: 25s;
+}
+
+.circle-2 {
+    width: 80px;
+    height: 80px;
+    top: 20%;
+    left: 80%;
+    background: radial-gradient(circle, #60a5fa, #3b82f6);
+    animation-delay: -5s;
+    animation-duration: 35s;
+}
+
+.circle-3 {
+    width: 100px;
+    height: 100px;
+    top: 40%;
+    left: 5%;
+    background: radial-gradient(circle, #fbbf24, #f59e0b);
+    animation-delay: -10s;
+    animation-duration: 28s;
+}
+
+.circle-4 {
+    width: 90px;
+    height: 90px;
+    top: 70%;
+    left: 85%;
+    background: radial-gradient(circle, #34d399, #60a5fa);
+    animation-delay: -15s;
+    animation-duration: 32s;
+}
+
+.circle-5 {
+    width: 110px;
+    height: 110px;
+    top: 10%;
+    left: 60%;
+    background: radial-gradient(circle, #fbbf24, #34d399);
+    animation-delay: -8s;
+    animation-duration: 22s;
+}
+
+.circle-6 {
+    width: 70px;
+    height: 70px;
+    top: 60%;
+    left: 30%;
+    background: radial-gradient(circle, #60a5fa, #fbbf24);
+    animation-delay: -20s;
+    animation-duration: 40s;
+}
+
+.circle-7 {
+    width: 130px;
+    height: 130px;
+    top: 80%;
+    left: 50%;
+    background: radial-gradient(circle, #34d399, #fbbf24);
+    animation-delay: -12s;
+    animation-duration: 26s;
+}
+
+.circle-8 {
+    width: 60px;
+    height: 60px;
+    top: 30%;
+    left: 70%;
+    background: radial-gradient(circle, #60a5fa, #34d399);
+    animation-delay: -18s;
+    animation-duration: 38s;
+}
+
+.circle-9 {
+    width: 95px;
+    height: 95px;
+    top: 50%;
+    left: 15%;
+    background: radial-gradient(circle, #fbbf24, #f59e0b);
+    animation-delay: -3s;
+    animation-duration: 24s;
+}
+
+.circle-10 {
+    width: 85px;
+    height: 85px;
+    top: 15%;
+    left: 40%;
+    background: radial-gradient(circle, #34d399, #10b981);
+    animation-delay: -25s;
+    animation-duration: 42s;
+}
+
+.circle-11 {
+    width: 75px;
+    height: 75px;
+    top: 85%;
+    left: 20%;
+    background: radial-gradient(circle, #60a5fa, #3b82f6);
+    animation-delay: -7s;
+    animation-duration: 30s;
+}
+
+.circle-12 {
+    width: 105px;
+    height: 105px;
+    top: 25%;
+    left: 90%;
+    background: radial-gradient(circle, #fbbf24, #34d399);
+    animation-delay: -22s;
+    animation-duration: 36s;
+}
+
+.circle-13 {
+    width: 65px;
+    height: 65px;
+    top: 45%;
+    left: 75%;
+    background: radial-gradient(circle, #60a5fa, #fbbf24);
+    animation-delay: -14s;
+    animation-duration: 33s;
+}
+
+.circle-14 {
+    width: 115px;
+    height: 115px;
+    top: 75%;
+    left: 5%;
+    background: radial-gradient(circle, #34d399, #fbbf24);
+    animation-delay: -9s;
+    animation-duration: 27s;
+}
+
+.circle-15 {
+    width: 55px;
+    height: 55px;
+    top: 35%;
+    left: 25%;
+    background: radial-gradient(circle, #fbbf24, #f59e0b);
+    animation-delay: -16s;
+    animation-duration: 29s;
+}
+
+.circle-16 {
+    width: 125px;
+    height: 125px;
+    top: 55%;
+    left: 60%;
+    background: radial-gradient(circle, #60a5fa, #3b82f6);
+    animation-delay: -4s;
+    animation-duration: 31s;
+}
+
+.circle-17 {
+    width: 85px;
+    height: 85px;
+    top: 90%;
+    left: 40%;
+    background: radial-gradient(circle, #34d399, #60a5fa);
+    animation-delay: -21s;
+    animation-duration: 37s;
+}
+
+.circle-18 {
+    width: 95px;
+    height: 95px;
+    top: 65%;
+    left: 90%;
+    background: radial-gradient(circle, #fbbf24, #34d399);
+    animation-delay: -11s;
+    animation-duration: 23s;
+}
+
+.circle-19 {
+    width: 70px;
+    height: 70px;
+    top: 5%;
+    left: 35%;
+    background: radial-gradient(circle, #60a5fa, #fbbf24);
+    animation-delay: -19s;
+    animation-duration: 41s;
+}
+
+.circle-20 {
+    width: 140px;
+    height: 140px;
+    top: 50%;
+    left: 45%;
+    background: radial-gradient(circle, #34d399, #fbbf24);
+    animation-delay: -6s;
+    animation-duration: 34s;
+}
+
+@keyframes gentleFloat {
+    0% {
+        transform: translateY(0px) translateX(0px) scale(1);
+        opacity: 0.6;
+    }
+    20% {
+        transform: translateY(-20px) translateX(15px) scale(1.2);
+        opacity: 0.8;
+    }
+    40% {
+        transform: translateY(-10px) translateX(-20px) scale(0.8);
+        opacity: 0.4;
+    }
+    60% {
+        transform: translateY(-35px) translateX(10px) scale(1.1);
+        opacity: 0.7;
+    }
+    80% {
+        transform: translateY(-15px) translateX(-10px) scale(0.9);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateY(0px) translateX(0px) scale(1);
+        opacity: 0.6;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .circle {
+        animation-duration: 25s;
+    }
+    
+    .circle-1, .circle-2, .circle-3, .circle-4, .circle-5, .circle-6, 
+    .circle-7, .circle-8, .circle-9, .circle-10, .circle-11, .circle-12,
+    .circle-13, .circle-14, .circle-15, .circle-16, .circle-17, .circle-18,
+    .circle-19, .circle-20 {
+        width: 50px;
+        height: 50px;
+    }
 }
 </style>
