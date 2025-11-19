@@ -13,6 +13,8 @@
         box-shadow: 0 8px 32px #0003;
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
+        position: relative;
+        z-index: 2;
     }
     .logo-row {
         display: flex;
@@ -121,25 +123,26 @@
         </form>
     </div>
 </div>
+@endsection
+
 @section('scripts')
 <script>
 $(document).ready(function() {
     $('#loginForm').on('submit', function(e) {
         e.preventDefault();
+        var form = this;
         
         $.get('/refresh-csrf').done(function(data) {
             $('input[name="_token"]').val(data.csrf_token);
             $('meta[name="csrf-token"]').attr('content', data.csrf_token);
 
-            this.submit();
-        }.bind(this)).fail(function() {
-
+            form.submit();
+        }).fail(function() {
             alert('Session expired. Please refresh the page and try again.');
             window.location.reload();
         });
     });
     
-
     if (window.location.search.includes('error=419')) {
         alert('Session expired. Please try logging in again.');
         window.history.replaceState({}, document.title, window.location.pathname);

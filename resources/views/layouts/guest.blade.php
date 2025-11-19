@@ -14,7 +14,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-gray-900 antialiased" style="background: url('{{ asset('assets/img/bg_login.jpeg') }}') center center / cover no-repeat fixed; min-height: 100vh;">
-        <div style="backdrop-filter: blur(8px); min-height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; z-index: 0;"></div>
+        <div style="backdrop-filter: blur(8px); min-height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; z-index: 0; pointer-events: none;"></div>
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-transparent" style="position: relative; z-index: 1;">
             @yield('content')
         </div>

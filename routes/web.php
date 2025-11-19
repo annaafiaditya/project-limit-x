@@ -309,4 +309,28 @@ Route::post('/clear-user-notifications', function () {
     return response()->json(['success' => true]);
 })->middleware('auth');
 
+// Hybrid action route for tracking statistics
+Route::get('/hybridaction/zybTrackerStatisticsAction', function (Illuminate\Http\Request $request) {
+    $callback = $request->get('__callback__', '');
+    $data = $request->get('data', '{}');
+    
+    // Parse data if needed
+    $decodedData = json_decode(urldecode($data), true);
+    
+    // Prepare response data
+    $responseData = [
+        'success' => true,
+        'data' => $decodedData ?: []
+    ];
+    
+    // If callback is provided, return JSONP response
+    if (!empty($callback)) {
+        return response($callback . '(' . json_encode($responseData) . ');')
+            ->header('Content-Type', 'application/javascript');
+    }
+    
+    // Otherwise return JSON response
+    return response()->json($responseData);
+});
+
 require __DIR__ . '/auth.php';
